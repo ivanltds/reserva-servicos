@@ -5,10 +5,11 @@
   "main": "public/index.html",
   "type": "module",
   "scripts": {
+    "dev": "npx local-web-server --directory public --port 3000",
+    "dev:server": "npx local-web-server --directory public --port 3000",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:e2e": "playwright test",
-    "dev:server": "npx local-web-server --directory public --port 3000"
+    "test:e2e": "playwright test"
   },
   "keywords": [
     "on-demand",

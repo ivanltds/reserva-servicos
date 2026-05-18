@@ -1,22 +1,101 @@
-# 🎼 Maestro AI Framework `v1.1.0`
+# 🎼 Maestro AI Framework & Reserva Serviços (Milestone 1)
 
-**O Framework Definitivo para Orquestração de Agentes Autônomos de Elite.**
+**A plataforma hiperlocal de serviços residenciais orquestrada por Agentes Autônomos de Elite.**
 
-O Maestro AI é uma arquitetura escalável para gerenciar ciclos de vida de software usando múltiplos agentes IA especializados (Persona-Driven AI). Ele garante a aplicação rigorosa de processos, previne pulos de fase e gerencia a **Melhoria Contínua** do time artificial em tempo real.
-
----
-
-## 🚀 Novidades da Versão v1.1.0
-
-1. **Novo Agente: `@ai-eng` (Engenheiro de IA)**: Especialista nativo em Prompt Engineering, Vetores, Janelas de Contexto e RAG, atuando em paralelo com o `@dev`.
-2. **Mecanismo de Auto-Sincronização Framework-First**: Nova rotina em PowerShell para exportar evoluções de agentes de projetos locais de volta para o núcleo do framework.
-3. **Refinamento de Governança**: Checklists mentais do Maestro agora auditam a prova física de ativos (ex: migrations SQL) antes do encerramento da fase de arquitetura/dev.
+Este repositório é gerenciado sob o ecossistema do **Maestro AI**, um framework de orquestração de agentes artificiais de elite baseados em personas (Persona-Driven AI). Ele garante a aplicação rigorosa de processos, conformidade regulatória estrita com a **LGPD** e um pipeline de desenvolvimento guiado por testes (**TDD**).
 
 ---
 
-## 🏗️ Arquitetura de Agentes
+## 🏢 Como Rodar o Reserva Serviços Localmente
 
-| Agente | Nome | Função Primária |
+Siga o guia passo a passo abaixo para rodar toda a infraestrutura hiperlocal (Banco PostgreSQL, Storage Privado, Auth e Servidor Web) localmente em sua máquina.
+
+### 📋 1. Pré-requisitos
+Antes de começar, garanta que você possui os seguintes softwares instalados:
+* [Node.js](https://nodejs.org/) (versão 18 ou superior)
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (necessário para rodar o Supabase localmente)
+* [Git](https://git-scm.com/)
+
+---
+
+### 🚀 2. Passo a Passo de Inicialização
+
+#### Passo A: Instalar Dependências do Node
+Instale todas as ferramentas de desenvolvimento, incluindo Playwright (E2E) e Jest (Unitários):
+```bash
+npm install
+```
+
+#### Passo B: Iniciar o Supabase Local via Docker
+O projeto utiliza um ambiente local emulado do Supabase para banco de dados e buckets. Certifique-se de que o Docker está rodando e execute:
+```bash
+# Inicia todos os containers do Supabase (Postgres, Studio, Auth, Storage)
+npx supabase start
+```
+*Dica: Na primeira execução, o download das imagens Docker pode levar alguns minutos. Uma vez concluído, o terminal exibirá as URLs locais, incluindo o painel de administração local (Studio) em `http://localhost:54323`.*
+
+#### Passo C: Aplicar as Migrações do Banco de Dados
+Para carregar a estrutura física de tabelas, triggers RLS de proteção LGPD e buckets privados de mídia:
+```bash
+npx supabase db reset
+```
+
+#### Passo D: Executar o Servidor Web Local
+Inicie o servidor de desenvolvimento hiperlocal na porta `3000`:
+```bash
+npm run dev
+```
+
+---
+
+### 🌐 3. Acessando as Interfaces do Produto
+
+Com o servidor rodando, abra o navegador e acesse as rotas do projeto:
+
+* 👤 **Jornada de Onboarding do Prestador**:
+  - URL: [http://localhost:3000/prestador-onboarding.html](http://localhost:3000/prestador-onboarding.html)
+  - *Fluxo*: Permite que novos prestadores enviem seus dados cadastrais, tirem selfie de identificação física e subam o atestado de antecedentes criminais.
+
+* 🔑 **Painel do Gestor (Workstation de Homologação)**:
+  - URL: [http://localhost:3000/gestor-painel.html](http://localhost:3000/gestor-painel.html)
+  - *Acesso Simples de Desenvolvimento*: O painel está preparado para criar a gestora **Mariana Alves** automaticamente no primeiro clique em "Acessar Painel".
+  - *E-mail administrativo sugerido*: `mariana.alves@reservaservicos.com.br`
+
+---
+
+## 🛡️ 4. Fluxo Transacional e Proteção LGPD (Expurgo Seguro)
+
+Durante a triagem no Painel do Gestor, ao clicar em **"Homologar Cadastro"**, o sistema dispara uma **Edge Function** baseada em Deno rodando localmente no Supabase que executa de forma segura os seguintes passos:
+
+1. Valida se o usuário que solicitou a aprovação possui credenciais administrativas.
+2. Efetua o expurgo físico permanente dos arquivos (Selfie e PDF de Antecedentes Criminais) dos buckets de S3 (`selfies-temp` e `criminologia-temp`).
+3. Promove a conta do candidato para a role operacional de `'provider'` no banco.
+4. Exibe a tela de liberação de tags com o componente Web customizado `<clipboard-card>` contendo as credenciais para a portaria física.
+
+---
+
+## 🧪 5. Execução de Testes Automatizados
+
+Garantimos a total integridade de nossas features através de testes unitários e de integração E2E robustos.
+
+```bash
+# Rodar todos os testes unitários e de ponta a ponta (E2E)
+npm run test
+
+# Rodar exclusivamente os testes unitários (Jest)
+npm run test:unit
+
+# Rodar exclusivamente os testes de interface E2E (Playwright)
+npm run test:e2e
+```
+
+---
+
+## 🏗️ Estrutura de Agentes (Maestro AI Framework)
+
+O desenvolvimento deste produto é regido pelo framework multi-agentes Maestro AI. Cada agente possui uma atribuição explícita:
+
+| Agente | Persona | Função Primária |
 | :--- | :--- | :--- |
 | **@maestro** | O Orquestrador | Gerente central. Interpreta, planeja e delega. |
 | **@ba** | Business Analyst | Levanta viabilidade técnica e escreve a PRD inicial. |
@@ -26,36 +105,6 @@ O Maestro AI é uma arquitetura escalável para gerenciar ciclos de vida de soft
 | **@ai-eng** | AI Engineer | Otimiza prompts, vetores e a "inteligência" do produto. |
 | **@qa** | Quality Assurer | Valida cobertura de testes, corner cases e bugfixes. |
 | **@devops** | DevOps | Versionamento, Commits padronizados e Infraestrutura. |
-
----
-
-## 🔄 Ciclo de Vida Obrigatório (O Fluxo)
-
-Operador ➡ **@maestro**
-1. 📋 **CONTEXTO**: Análise fria dos ativos e regras atuais do repositório.
-2. 💡 **DESCOBERTA**: `@ba` traduz o desejo do usuário em um escopo técnico (PRD).
-3. 🎨 **EXPERIÊNCIA**: `@ux-ui` garante que a jornada seja premium e visualmente impecável.
-4. 📐 **ARQUITETURA**: `@architect` decompõe a entrega em passos lógicos e seguros.
-5. 🛠️ **DEV / IA**: `@dev` e `@ai-eng` constroem a funcionalidade lado a lado.
-6. ✅ **VALIDAÇÃO**: `@qa` quebra o código e garante 100% de confiabilidade.
-7. 📦 **VERSÃO / DEPLOY**: `@devops` empacota e entrega o valor gerado.
-
----
-
-## 🔄 Rotina de Evolução Contínua
-
-O Maestro aprende com seus erros. Feedbacks registrados em `.gemini/melhoria-continua/` modificam o comportamento dos agentes na próxima rodada.
-
-### 📡 Como Sincronizar Evoluções com o Core
-Criamos um script de bootstrap reverso para garantir que a evolução do seu framework acompanhe o uso real. No diretório de ferramentas:
-
-```powershell
-# Exporta agentes evoluídos de um projeto local de volta para a base do framework
-.\scripts\sync-maestro-framework.ps1 -Action export
-
-# Faz push das novidades de volta para o GitHub upstream
-.\scripts\sync-maestro-framework.ps1 -Action push
-```
 
 ---
 
