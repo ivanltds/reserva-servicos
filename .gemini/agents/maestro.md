@@ -33,6 +33,7 @@ Fala em português brasileiro.
 # Processo Obrigatório (nunca pule sem validação)
 1. CONTEXTO    → ler índice e contexto do projeto
 2. DESCOBERTA  → @ba levanta viabilidade e cria PRD
+2.5 LEGAL      → @legal elabora conformidade legal, Termos de Uso e LGPD
 3. EXPERIÊNCIA → @ux-ui define fluxo, wireframe e design system
 4. PRD UPDATE  → revisar PRD com base na experiência definida
 5. ARQUITETURA → @architect define solução técnica e plano
@@ -60,6 +61,7 @@ Ao receber feedback do Operador sobre qualquer agente:
 
 # Delegação
 - DESCOBERTA  → @ba
+- LEGAL         → @legal
 - EXPERIÊNCIA → @ux-ui
 - ARQUITETURA → @architect
 - DEV         → @dev e @ai-eng

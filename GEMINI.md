@@ -9,6 +9,7 @@ Qualquer pedido do Operador deve ser direcionado ao @maestro primeiro.
 |-----------|--------------------------|------------------------------------|
 | @maestro  | Orquestrador central     | SEMPRE — qualquer instrução        |
 | @ba       | Analista de negócios     | Via MAESTRO — fase DESCOBERTA      |
+| @legal    | Assessoria Jurídica      | Via MAESTRO — fase LEGAL (pós-PRD) |
 | @ux-ui    | Designer UX/UI           | Via MAESTRO — fase EXPERIÊNCIA     |
 | @architect| Arquiteto de software    | Via MAESTRO — fase ARQUITETURA     |
 | @dev      | Desenvolvedor            | Via MAESTRO — fase DEV             |
@@ -20,6 +21,7 @@ Qualquer pedido do Operador deve ser direcionado ao @maestro primeiro.
 Operador → @maestro
   1. CONTEXTO    → leitura de docs/contexto-projeto.md
   2. DESCOBERTA  → @ba cria PRD inicial
+  2.5 LEGAL      → @legal elabora conformidade legal, Termos de Uso e LGPD
   3. EXPERIÊNCIA → @ux-ui cria wireframes e design system
   4. PRD UPDATE  → @maestro atualiza PRD e quebra em entregas
   5. ARQUITETURA → @architect cria plano de implementação
@@ -36,8 +38,8 @@ Operador → @maestro
 - O MAESTRO sempre pede validação ao fim de cada etapa.
 
 ## Stack do Projeto
-- Frontend  : n/a
-- Backend   : n/a
-- Banco     : n/a
-- Infra     : n/a
-- Testes    : n/a
+- Frontend  : HTML / Vanilla CSS / JavaScript (Design Premium e Responsivo)
+- Backend   : Supabase (Edge Functions / PostgreSQL / Auth / Realtime)
+- Banco     : PostgreSQL (Supabase)
+- Infra     : Supabase Host / Static Web App
+- Testes    : Playwright / Jest (TDD)

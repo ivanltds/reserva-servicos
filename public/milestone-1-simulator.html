@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva Serviços - Simulador Premium de Onboarding</title>
+  
+  <!-- Google Fonts Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Luxury Obsidian & Emerald/Gold Palette */
+      --bg-primary: #07090e;     /* Obsidian Negro Profundo */
+      --bg-secondary: #0f131f;   /* Graphite Slate */
+      --bg-tertiary: #192033;    /* Steel Gray */
+      --color-brand: #059669;    /* Emerald Jade Premium */
+      --color-brand-hover: #047857;
+      --color-brand-light: #34d399; /* Mint Bright */
+      --color-accent: #d97706;   /* Bronze Ocre / Amber Gold */
+      --color-accent-light: #f59e0b; /* Ouro Puro */
+      --color-success: #10b981;
+      --color-error: #ef4444;
+      --color-info: #3b82f6;
+      --text-primary: #f8fafc;   /* Slate White */
+      --text-secondary: #cbd5e1; /* Cool Slate */
+      --text-muted: #64748b;     /* Muted Slate */
+      
+      --shadow-premium: 0 12px 40px -8px rgba(0, 0, 0, 0.6);
+      --border-thin: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 5% 5%, rgba(5, 150, 105, 0.05) 0px, transparent 50%),
+        radial-gradient(at 95% 95%, rgba(217, 119, 6, 0.03) 0px, transparent 50%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 32px 24px;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--text-primary) 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    /* Main Container Layout */
+    .simulator-container {
+      display: grid;
+      grid-template-columns: 1.1fr 1.6fr;
+      gap: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .simulator-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .device-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-accent-light);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* High-Fidelity Phone Frame */
+    .phone-wrapper {
+      justify-self: center;
+      width: 375px;
+      height: 760px;
+      background-color: #0b0f19;
+      border: 14px solid #1e293b;
+      border-radius: 46px;
+      position: relative;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+
+    .phone-notch {
+      width: 140px;
+      height: 28px;
+      background-color: #1e293b;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 18px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phone-notch::before {
+      content: '';
+      width: 45px;
+      height: 4px;
+      background-color: #0b0f19;
+      border-radius: 2px;
+      margin-right: 8px;
+    }
+
+    .phone-notch::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background-color: #0b0f19;
+      border-radius: 50%;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-primary);
+      padding: 44px 20px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .phone-screen::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* High-Fidelity Desktop SaaS Frame */
+    .desktop-wrapper {
+      background-color: var(--bg-secondary);
+      border: var(--border-thin);
+      border-radius: 24px;
+      height: 760px;
+      box-shadow: var(--shadow-premium);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .desktop-header {
+      background-color: #0b0f19;
+      padding: 20px 28px;
+      border-bottom: var(--border-thin);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .desktop-header h2 {
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .desktop-header .badge-live {
+      background: rgba(5, 150, 105, 0.08);
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      color: var(--color-brand-light);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background-color: var(--color-brand-light);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 1.8s infinite;
+    }
+
+    .desktop-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      height: calc(100% - 65px);
+    }
+
+    /* Left Sidebar triaging list */
+    .desktop-sidebar {
+      background-color: rgba(7, 9, 14, 0.4);
+      border-right: var(--border-thin);
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .candidate-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .candidate-card:hover {
+      border-color: rgba(5, 150, 105, 0.3);
+      transform: translateY(-2px);
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+
+    .candidate-card.active {
+      border-color: var(--color-brand);
+      background-color: rgba(5, 150, 105, 0.04);
+      box-shadow: 0 4px 20px rgba(5, 150, 105, 0.08);
+    }
+
+    .candidate-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .candidate-info h4 {
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+      font-weight: 500;
+    }
+
+    .candidate-info p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .candidate-status {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background-color: rgba(217, 119, 6, 0.08);
+      color: var(--color-accent-light);
+      border: 1px solid rgba(217, 119, 6, 0.15);
+    }
+
+    .status-approved {
+      background-color: rgba(5, 150, 105, 0.08);
+      color: var(--color-brand-light);
+      border: 1px solid rgba(5, 150, 105, 0.15);
+    }
+
+    /* Main Workspace Central Panel */
+    .desktop-main-panel {
+      padding: 32px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .panel-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .panel-empty svg {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 20px;
+      stroke: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .panel-empty h3 {
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .triaging-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .triaging-box {
+      background-color: rgba(7, 9, 14, 0.3);
+      border: var(--border-thin);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .triaging-box h3 {
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      font-size: 0.8rem;
+    }
+
+    /* PDF document view frame */
+    .pdf-container {
+      background-color: #07090e;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pdf-preview {
+      width: 100%;
+      height: 100%;
+      background-color: #fff;
+      padding: 24px;
+      color: #0f172a;
+      font-size: 0.75rem;
+      font-family: 'Inter', sans-serif;
+      overflow-y: auto;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.05);
+      line-height: 1.4;
+      transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .doc-photo {
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg-primary);
+      border: var(--border-thin);
+      height: 100%;
+    }
+
+    .id-photo-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: 200px;
+    }
+
+    /* PREMIUM DESIGN BUTTONS */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-brand {
+      background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-hover) 100%);
+      color: var(--text-primary);
+      box-shadow: 0 4px 20px rgba(5, 150, 105, 0.25);
+    }
+
+    .btn-brand:hover {
+      box-shadow: 0 6px 24px rgba(5, 150, 105, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+      color: var(--bg-primary);
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(217, 119, 6, 0.25);
+    }
+
+    .btn-accent:hover {
+      box-shadow: 0 6px 24px rgba(217, 119, 6, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: var(--color-error);
+    }
+
+    .btn-danger:hover {
+      background-color: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* MOBILE FORM COMPONENT STYLES */
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .wizard-steps::before {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--bg-tertiary);
+      z-index: 1;
+    }
+
+    .step-indicator {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: var(--bg-tertiary);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid var(--bg-primary);
+    }
+
+    .step-indicator.active {
+      background-color: var(--color-brand);
+      color: var(--text-primary);
+      box-shadow: 0 0 14px rgba(5, 150, 105, 0.4);
+      border-color: var(--color-brand-light);
+    }
+
+    .step-indicator.done {
+      background-color: var(--color-brand);
+      color: var(--text-primary);
+    }
+
+    .form-wizard-pane {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .form-wizard-pane.active {
+      display: flex;
+      animation: fadeIn 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 13px 16px;
+      background-color: var(--bg-secondary);
+      border: var(--border-thin);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.92rem;
+      transition: all 0.2s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--color-brand-light);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+      background-color: var(--bg-primary);
+    }
+
+    /* Mock file upload dropzones */
+    .mock-upload-box {
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      background-color: var(--bg-secondary);
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .mock-upload-box:hover {
+      border-color: var(--color-brand);
+      background-color: rgba(5, 150, 105, 0.02);
+      transform: translateY(-1px);
+    }
+
+    .mock-upload-box svg {
+      stroke: var(--text-secondary);
+      width: 32px;
+      height: 32px;
+    }
+
+    .mock-upload-box p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .upload-success-badge {
+      display: none;
+      background-color: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--color-brand-light);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 8px;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Safe Shield badge for LGPD SPAN */
+    .lgpd-shield-badge {
+      background: rgba(217, 119, 6, 0.03);
+      border: 1px solid rgba(217, 119, 6, 0.15);
+      color: var(--text-secondary);
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      line-height: 1.45;
+    }
+
+    .lgpd-shield-badge strong {
+      color: var(--color-accent-light);
+    }
+
+    /* SHREDDER EFFECT */
+    .shredder-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(7, 9, 14, 0.98);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 16px;
+    }
+
+    .shredder-machine {
+      width: 220px;
+      height: 44px;
+      background-color: #1e293b;
+      border-radius: 6px;
+      border-bottom: 8px solid #0f172a;
+      position: relative;
+      margin-bottom: 36px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+    }
+
+    .shredder-paper-input {
+      width: 150px;
+      height: 90px;
+      background-color: #fff;
+      position: absolute;
+      bottom: 12px;
+      left: 35px;
+      border-radius: 2px;
+      animation: feedPaper 2s linear forwards;
+    }
+
+    .shredder-output-container {
+      width: 150px;
+      height: 120px;
+      position: absolute;
+      top: 42px;
+      left: 35px;
+      overflow: hidden;
+    }
+
+    .shredder-strip {
+      width: 8px;
+      height: 140px;
+      background-color: #fff;
+      position: absolute;
+      top: -140px;
+      opacity: 0.9;
+    }
+
+    .shredder-strip:nth-child(1) { left: 5px; animation: shredStrip 2s linear 0.4s forwards; }
+    .shredder-strip:nth-child(2) { left: 20px; animation: shredStrip 2s linear 0.5s forwards; }
+    .shredder-strip:nth-child(3) { left: 35px; animation: shredStrip 2s linear 0.3s forwards; }
+    .shredder-strip:nth-child(4) { left: 50px; animation: shredStrip 2s linear 0.6s forwards; }
+    .shredder-strip:nth-child(5) { left: 65px; animation: shredStrip 2s linear 0.45s forwards; }
+    .shredder-strip:nth-child(6) { left: 80px; animation: shredStrip 2s linear 0.55s forwards; }
+    .shredder-strip:nth-child(7) { left: 95px; animation: shredStrip 2s linear 0.35s forwards; }
+    .shredder-strip:nth-child(8) { left: 110px; animation: shredStrip 2s linear 0.5s forwards; }
+    .shredder-strip:nth-child(9) { left: 125px; animation: shredStrip 2s linear 0.4s forwards; }
+
+    @keyframes feedPaper {
+      0% { height: 90px; transform: translateY(0); opacity: 1; }
+      85% { height: 0px; transform: translateY(22px); opacity: 0.4; }
+      100% { height: 0px; transform: translateY(30px); opacity: 0; }
+    }
+
+    @keyframes shredStrip {
+      0% { top: -140px; }
+      30% { top: -15px; }
+      100% { top: 140px; opacity: 0; }
+    }
+
+    /* MOCK LANDING PAGE MOTIVATIONAL CARD */
+    .phone-lp-hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .phone-lp-hero h2 {
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, var(--text-primary) 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 10px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.03); opacity: 0.85; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulse-glow {
+      0% { transform: scale(1); box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25); }
+      50% { transform: scale(1.02); box-shadow: 0 8px 24px rgba(217, 119, 6, 0.45); }
+      100% { transform: scale(1); box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25); }
+    }
+
+    /* GESTOR LOGIN SCREEN */
+    .admin-login-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-primary);
+      background-image: radial-gradient(circle at center, rgba(5, 150, 105, 0.04) 0%, transparent 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+      transition: all 0.5s ease-in-out;
+    }
+
+    .login-card-glass {
+      width: 100%;
+      max-width: 380px;
+      background: rgba(15, 19, 31, 0.75);
+      backdrop-filter: blur(20px);
+      border: var(--border-thin);
+      box-shadow: var(--shadow-premium);
+      border-radius: 20px;
+      padding: 36px;
+    }
+
+    /* Spinner animation */
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid var(--text-primary);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Reserva Serviços - Experiência de Onboarding</h1>
+    <p>Nossa proposta hiperlocal: Landing Page do Prestador, Wizard simplificado e Backoffice do Gestor sob compliance LGPD</p>
+  </header>
+
+  <div class="simulator-container">
+    
+    <!-- LEFT PANEL: PHONE WIZARD & LP -->
+    <div>
+      <div class="device-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        App do Profissional (Celular)
+      </div>
+      
+      <div class="phone-wrapper">
+        <div class="phone-notch"></div>
+        <div class="phone-screen" id="phoneScreen">
+          
+          <!-- STAGE 0: HIGH-MOTIVATIONAL LANDING PAGE FOR THE PROFESSIONAL -->
+          <div id="phoneLPContent" style="display: flex; flex-direction: column; flex: 1; animation: fadeIn 0.4s ease; padding-top: 10px;">
+            
+            <div class="phone-lp-hero" style="text-align: center; margin-bottom: 20px;">
+              <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; background-color: rgba(217,119,6,0.12); color: var(--color-accent-light); padding: 5px 12px; border-radius: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'Outfit'; border: 1px solid rgba(217,119,6,0.2); margin-bottom: 12px;">
+                ⭐ GANHE ATÉ R$ 7.680/MÊS
+              </div>
+              <h2 style="font-size: 1.55rem; font-family: 'Outfit'; font-weight: 700; background: linear-gradient(135deg, #ffffff 50%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.25;">
+                Sua Renda Multiplicada Perto de Casa
+              </h2>
+              <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 8px; font-weight: 300; line-height: 1.4;">
+                Atenda clientes a poucos passos de casa no complexo residencial, livre de trânsito ou custos de transporte.
+              </p>
+            </div>
+
+            <!-- INTERACTIVE INCOME ESTIMATOR WIDGET -->
+            <div style="background: linear-gradient(135deg, rgba(15,19,31,0.9) 0%, rgba(7,9,14,0.95) 100%); border: 1px solid rgba(217, 119, 6, 0.25); border-radius: 16px; padding: 18px; margin-bottom: 22px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+              <h4 style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-weight: 600;">
+                Simule Seus Ganhos Mensais
+              </h4>
+              
+              <!-- Option chips -->
+              <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 16px;">
+                <button id="chip-low" onclick="setCalculatedIncome(2, 'low')" style="flex: 1; padding: 8px 4px; font-size: 0.72rem; font-weight: 600; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background-color: rgba(255,255,255,0.02); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;">
+                  2 Serviços/dia
+                </button>
+                <button id="chip-med" onclick="setCalculatedIncome(3, 'med')" style="flex: 1; padding: 8px 4px; font-size: 0.72rem; font-weight: 600; border-radius: 8px; border: 1px solid var(--color-accent); background-color: rgba(217,119,6,0.08); color: var(--color-accent-light); cursor: pointer; transition: all 0.2s;">
+                  3 Serviços/dia
+                </button>
+                <button id="chip-high" onclick="setCalculatedIncome(4, 'high')" style="flex: 1; padding: 8px 4px; font-size: 0.72rem; font-weight: 600; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background-color: rgba(255,255,255,0.02); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;">
+                  4 Serviços/dia
+                </button>
+              </div>
+
+              <!-- Main income readout -->
+              <div style="margin-bottom: 4px;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 500;">Seu ganho líquido estimado</span>
+                <div id="income-readout" style="font-size: 2.1rem; font-weight: 800; color: var(--color-accent-light); font-family: 'Outfit'; margin: 4px 0; text-shadow: 0 0 16px rgba(217, 119, 6, 0.4);">
+                  R$ 5.760<span style="font-size: 0.85rem; font-weight: 400; color: var(--text-secondary); letter-spacing: 0;">/mês</span>
+                </div>
+              </div>
+              <p id="income-desc" style="font-size: 0.68rem; color: var(--text-muted); font-weight: 300; line-height: 1.3;">
+                Fazendo 15 diárias por semana. <strong>Receba 80% limpos</strong> via split PIX instantâneo direto na sua conta.
+              </p>
+            </div>
+            
+            <!-- Sleek Highlights Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+              <div style="background-color: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem; line-height: 1;">⚡</span>
+                <div style="text-align: left;">
+                  <h4 style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary);">Pix na Hora</h4>
+                  <p style="font-size: 0.65rem; color: var(--text-secondary); font-weight: 300;">Split instantâneo</p>
+                </div>
+              </div>
+              
+              <div style="background-color: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem; line-height: 1;">🚶</span>
+                <div style="text-align: left;">
+                  <h4 style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary);">Zero Trânsito</h4>
+                  <p style="font-size: 0.65rem; color: var(--text-secondary); font-weight: 300;">Dentro das torres</p>
+                </div>
+              </div>
+
+              <div style="background-color: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; grid-column: span 2;">
+                <span style="font-size: 1.4rem; line-height: 1;">🛡️</span>
+                <div style="text-align: left;">
+                  <h4 style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary);">Seguro de Acidentes Incluso</h4>
+                  <p style="font-size: 0.65rem; color: var(--text-secondary); font-weight: 300;">Todas as diárias contam com seguro integral gratuito</p>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-top: auto; padding-bottom: 8px;">
+              <button class="btn btn-accent" onclick="startWizard()" style="animation: pulse-glow 2s infinite; background: linear-gradient(135deg, var(--color-accent) 0%, #f59e0b 100%);">
+                COMEÇAR A FATURAR AGORA
+              </button>
+            </div>
+            
+          </div>
+          
+          <!-- STAGE 1: THE REGISTERING WIZARD -->
+          <div id="phoneWizardContent" style="display: none; flex-direction: column; flex: 1;">
+            
+            <div style="margin-bottom: 20px; text-align: center;">
+              <h3 style="font-size: 1.15rem; color: var(--text-primary); margin-bottom: 2px;">Criação de Cadastro</h3>
+              <p style="color: var(--text-secondary); font-size: 0.78rem;">Triagem de Elite - Reserva Serviços</p>
+            </div>
+            
+            <div class="wizard-steps">
+              <div class="step-indicator active" id="step1">1</div>
+              <div class="step-indicator" id="step2">2</div>
+              <div class="step-indicator" id="step3">3</div>
+            </div>
+            
+            <!-- STEP 1 PANEL -->
+            <div class="form-wizard-pane active" id="pane1">
+              <div class="input-group">
+                <label for="pName">Nome Completo</label>
+                <input type="text" id="pName" placeholder="Ex: Carlos Santos" value="Carlos Santos">
+              </div>
+              <div class="input-group">
+                <label for="pCPF">CPF</label>
+                <input type="text" id="pCPF" placeholder="000.000.000-00" value="123.456.789-00">
+              </div>
+              <div class="input-group">
+                <label for="pCel">Celular (WhatsApp)</label>
+                <input type="text" id="pCel" placeholder="(11) 99999-9999" value="(11) 98765-4321">
+              </div>
+              <div class="input-group">
+                <label for="pLoc">Torre & Apartamento onde mora</label>
+                <input type="text" id="pLoc" placeholder="Ex: Torre Verde, Apto 102" value="Torre Verde, Apto 102">
+              </div>
+              
+              <div style="margin-top: auto; padding-top: 16px;">
+                <button class="btn btn-brand" onclick="goStep(2)">Continuar para Documentos</button>
+              </div>
+            </div>
+            
+            <!-- STEP 2 PANEL -->
+            <div class="form-wizard-pane" id="pane2">
+              <div class="lgpd-shield-badge" style="margin-bottom: 16px;">
+                <span style="font-size: 1.1rem; line-height: 1;">🛡️</span>
+                <div>
+                  <strong>Privacidade Absoluta</strong><br>
+                  O arquivo da sua identidade (RG/CNH) também será <strong>picotado e excluído permanentemente</strong> dos nossos servidores logo após a validação. Não guardamos cópia física ou digital dos seus documentos pessoais.
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Foto de Rosto (Selfie Rápida)</label>
+                <div class="mock-upload-box" onclick="mockUpload('selfie')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  <p>Tirar ou Enviar Foto</p>
+                  <div class="upload-success-badge" id="badge-selfie">✓ Biometria Capturada</div>
+                </div>
+              </div>
+              
+              <div class="input-group">
+                <label>Documento Oficial Frente e Verso (RG/CNH)</label>
+                <div class="mock-upload-box" onclick="mockUpload('rg')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 8h10M7 12h10M7 16h10"></path></svg>
+                  <p>Carregar Frente & Verso</p>
+                  <div class="upload-success-badge" id="badge-rg">✓ CNH_Frente_Verso.jpg</div>
+                </div>
+              </div>
+              
+              <div style="margin-top: auto; padding-top: 16px; display: flex; gap: 8px;">
+                <button class="btn btn-danger" onclick="goStep(1)" style="flex: 0.4;">Voltar</button>
+                <button class="btn btn-brand" onclick="goStep(3)" style="flex: 1;">Ir para Etapa Final</button>
+              </div>
+            </div>
+            
+            <!-- STEP 3 PANEL -->
+            <div class="form-wizard-pane" id="pane3">
+              <div class="lgpd-shield-badge">
+                <span style="font-size: 1.1rem; line-height: 1;">🛡️</span>
+                <div>
+                  <strong>Blindagem LGPD Ativa</strong><br>
+                  Para sua total privacidade, o PDF criminológico original será <strong>picotado e excluído permanentemente</strong> logo após a triagem.
+                </div>
+              </div>
+              
+              <div class="input-group" style="margin-bottom: 24px;">
+                <label>Atestado de Antecedentes Criminais (PDF)</label>
+                <div class="mock-upload-box" onclick="mockUpload('atestado')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  <p>Carregar Certidão PDF</p>
+                  <div class="upload-success-badge" id="badge-atestado">✓ Atestado_Civil_Pol_Sp.pdf</div>
+                </div>
+              </div>
+              
+              <div style="margin-top: auto; padding-top: 16px; display: flex; gap: 8px;">
+                <button class="btn btn-danger" onclick="goStep(2)" style="flex: 0.4;">Voltar</button>
+                <button class="btn btn-brand" onclick="submitOnboarding()" style="flex: 1;">Finalizar e Enviar</button>
+              </div>
+            </div>
+            
+          </div>
+          
+          <!-- SCREEN 2: WAITING APPROVAL SCREEN -->
+          <div id="phoneWaitingContent" style="display: none; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 24px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: rgba(217, 119, 6, 0.05); border: 2px solid var(--color-accent-light); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; animation: pulse 1.5s infinite;">
+              <svg width="36" height="36" fill="none" stroke="var(--color-accent-light)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 12px;">Em Processo de Triagem</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px; line-height: 1.45; font-weight: 300;">
+              Seu cadastro já chegou na central! Faça o login no **Painel do Gestor** ao lado para triar os documentos de Carlos Santos.
+            </p>
+            <p style="color: var(--color-accent-light); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">
+              🕒 Triagem Local Ativa
+            </p>
+          </div>
+          
+          <!-- SCREEN 3: STUNNING CONGRATULATION (APPROVED) -->
+          <div id="phoneApprovedContent" style="display: none; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 24px; animation: fadeIn 0.5s ease;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, rgba(5,150,105,0.1) 0%, rgba(5,150,105,0.2) 100%); border: 2px solid var(--color-brand-light); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 0 24px rgba(5, 150, 105, 0.25);">
+              <svg width="36" height="36" fill="none" stroke="var(--color-brand-light)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 style="font-size: 1.45rem; margin-bottom: 10px; color: var(--color-brand-light); font-family: 'Outfit';">Conta Ativada!</h3>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 24px; line-height: 1.45; font-weight: 300;">
+              Parabéns, Carlos! Sua identidade foi aprovada e seu PDF criminológico foi permanentemente fragmentado por privacidade (LGPD).
+            </p>
+            <div style="background-color: var(--bg-secondary); border: var(--border-thin); padding: 18px; border-radius: 16px; width: 100%; margin-bottom: 24px; box-shadow: inset 0 0 20px rgba(0,0,0,0.2);">
+              <p style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; font-weight: 600;">Credencial Oficial</p>
+              <p style="font-size: 1.15rem; font-family: 'Outfit', sans-serif; font-weight: 600; margin-bottom: 6px;">Carlos Santos</p>
+              <span style="font-size: 0.65rem; background-color: rgba(5, 150, 105, 0.08); color: var(--color-brand-light); border: 1px solid var(--color-brand); padding: 3px 10px; border-radius: 6px; font-weight: 600; letter-spacing: 0.5px;">✓ PROFISSIONAL VERIFICADO</span>
+            </div>
+            <button class="btn btn-brand" onclick="resetSimulator()" style="width: 100%;">Resetar Simulação</button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- RIGHT PANEL: DESKTOP GESTOR BACKOFFICE -->
+    <div>
+      <div class="device-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        Painel de Triagem (Gestão Operacional)
+      </div>
+      
+      <div class="desktop-wrapper">
+        
+        <!-- GESTOR LOGIN SCREEN (AUTHENTICATION SIMULATION) -->
+        <div class="admin-login-screen" id="adminLoginScreen">
+          <div class="login-card-glass">
+            <div style="text-align: center; margin-bottom: 28px;">
+              <span style="font-size: 0.65rem; background-color: rgba(217, 119, 6, 0.1); color: var(--color-accent-light); border: 1px solid rgba(217, 119, 6, 0.2); padding: 4px 10px; border-radius: 20px; font-weight: 600; font-family: 'Outfit'; text-transform: uppercase; letter-spacing: 1px;">
+                Reserva Serviços
+              </span>
+              <h2 style="font-size: 1.55rem; color: var(--text-primary); margin-top: 10px;">Acesso Operacional</h2>
+              <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; font-weight: 300;">Digite suas credenciais de gestor local</p>
+            </div>
+            
+            <div class="input-group">
+              <label for="admEmail">E-mail Corporativo</label>
+              <input type="email" id="admEmail" value="mariana@raposo.com.br" disabled style="background-color: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.03); color: var(--text-secondary);">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 28px;">
+              <label for="admPass">Senha de Acesso</label>
+              <input type="password" id="admPass" value="••••••••" disabled style="background-color: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.03); color: var(--text-secondary);">
+            </div>
+            
+            <button class="btn btn-brand" id="btnLoginAdmin" onclick="loginAdmin()">
+              <span id="loginBtnText">Acessar Backoffice de Triagem</span>
+              <span id="loginBtnSpinner" class="spinner" style="display: none;"></span>
+            </button>
+            
+            <div style="margin-top: 20px; text-align: center;">
+              <p style="font-size: 0.68rem; color: var(--text-muted); line-height: 1.35;">
+                🔒 Sessão criptografada sob conformidade com a LGPD e auditoria de logs ativa.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- LOGGED-IN MAIN WORKSPACE -->
+        <div id="adminMainDashboard" style="display: none; height: 100%; width: 100%;">
+          <div class="desktop-header">
+            <h2>
+              <span style="font-size: 1.25rem; color: var(--color-brand-light); font-weight: 700;">Reserva Serviços</span>
+              <span style="font-size: 0.75rem; background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-weight: 500; font-family: 'Outfit';">ADMIN</span>
+            </h2>
+            <div style="display: flex; align-items: center; gap: 20px;">
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Gestor: <strong style="color: var(--text-primary); font-weight: 500;">Mariana Alves</strong></span>
+              <div class="badge-live">Fila Realtime Ativa</div>
+            </div>
+          </div>
+          
+          <div class="desktop-content">
+            <!-- Left queue sidebar -->
+            <div class="desktop-sidebar">
+              <div class="sidebar-title">Fila de Candidatos</div>
+              <div id="no-candidates-msg" style="color: var(--text-muted); font-size: 0.78rem; text-align: center; padding: 24px 0; font-weight: 300; line-height: 1.4;">
+                Aguardando cadastros. Preencha e envie o formulário no celular à esquerda!
+              </div>
+              
+              <div id="candidates-list">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+            
+            <!-- Central panel triaging details -->
+            <div class="desktop-main-panel" id="adminMainPanel">
+              <div class="panel-empty" id="adminEmptyState">
+                <svg fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path></svg>
+                <h3>Nenhum Cadastro Selecionado</h3>
+                <p style="font-size: 0.82rem; max-width: 320px; line-height: 1.45; font-weight: 300;">Escolha um candidato na fila à esquerda para realizar a checagem biométrica e criminológica local.</p>
+              </div>
+              
+              <!-- TRIAGING DATA WRAPPER -->
+              <div id="triagingDataContainer" style="display: none; animation: fadeIn 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 16px;">
+                  <div>
+                    <h3 id="admCandName" style="font-size: 1.5rem; margin-bottom: 4px; font-family: 'Outfit';">Carlos Santos</h3>
+                    <p id="admCandContact" style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 300;">Celular: (11) 98765-4321 | Local: Torre Verde, Apto 102</p>
+                  </div>
+                  <div style="font-size: 0.72rem; background-color: rgba(255,255,255,0.03); padding: 6px 14px; border-radius: 8px; border: var(--border-thin); color: var(--text-secondary);">
+                    CPF: <span id="admCandCPF" style="font-family: monospace; font-weight: 600; color: var(--text-primary);">123.456.789-00</span>
+                  </div>
+                </div>
+                
+                <div class="triaging-grid">
+                  
+                  <!-- Side 1: Identity Selfie vs Document -->
+                  <div class="triaging-box">
+                    <h3>Identidade & Biometria</h3>
+                    <div class="id-photo-preview" id="idPhotosContainer">
+                      <div class="doc-photo" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200');" title="Selfie enviada"></div>
+                      <div class="doc-photo" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'); border: 3px solid var(--color-accent);" title="Documento CNH oficial"></div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 14px; line-height: 1.45; font-weight: 300;">
+                      ✓ Comparação biométrica concluída com sucesso. A foto de rosto corresponde aos dados da CNH nacional.
+                    </p>
+                  </div>
+                  
+                  <!-- Side 2: Background PDF check -->
+                  <div class="triaging-box" style="position: relative;">
+                    <h3>Atestado Criminal (Policia Civil)</h3>
+                    <div class="pdf-container">
+                      
+                      <!-- THE SHREDDABLE PDF visual -->
+                      <div class="pdf-preview" id="pdfDocumentView">
+                        <div style="border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px; text-align: center; font-weight: bold; font-size: 0.65rem; color: #0f172a; font-family: 'Outfit';">
+                          POLÍCIA CIVIL DO ESTADO DE SÃO PAULO<br>
+                          INSTITUTO DE IDENTIFICAÇÃO RICARDO GUMBLETON DAUNT
+                        </div>
+                        <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.7rem; text-align: center;">
+                          ATESTADO DE ANTECEDENTES CRIMINAIS
+                        </div>
+                        <p style="margin-bottom: 8px; color: #334155; font-size: 0.68rem;">Certificamos para fins de triagem de segurança corporativa que o cidadão:</p>
+                        <p style="font-weight: bold; margin-bottom: 8px; color: #0f172a;">NOME: CARLOS SANTOS<br>CPF: 123.456.789-00</p>
+                        <p style="margin-bottom: 12px; color: var(--color-brand); font-weight: bold; font-size: 0.72rem; display: flex; align-items: center; gap: 4px;">
+                          ✓ NADA CONSTA de registros criminais ativos nesta instituição.
+                        </p>
+                        <div style="font-size: 0.55rem; color: var(--text-muted); text-align: center; margin-top: 16px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                          Autenticidade Segura: SP-998811A-2026<br>
+                          Sessão monitorada em ambiente fechado LGPD.
+                        </div>
+                      </div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--color-accent-light); margin-top: 14px; line-height: 1.4; font-weight: 400;">
+                      ⚠️ Importante: Ao aprovar, todos os documentos pessoais (RG/CNH e Atestado) serão destruídos permanentemente para segurança e privacidade do prestador.
+                    </p>
+                  </div>
+                  
+                </div>
+                
+                <!-- Triaging actions buttons -->
+                <div style="margin-top: 32px; display: flex; gap: 20px;">
+                  <button class="btn btn-danger" onclick="rejectCandidate()" style="flex: 0.3;">Recusar Cadastro</button>
+                  <button class="btn btn-brand" onclick="approveCandidate()" style="flex: 1;">
+                    <span>🛡️</span> APROVAR CADASTRO (LGPD)
+                  </button>
+                </div>
+              </div>
+              
+              <!-- CONFIRMATION OVERLAY -->
+              <div class="shredder-overlay" id="confirmOverlay" style="background-color: rgba(7, 9, 14, 0.95); justify-content: center; align-items: center; display: none;">
+                <div class="login-card-glass" style="max-width: 440px; text-align: center; border: 1px solid rgba(217, 119, 6, 0.3);">
+                  <div style="width: 54px; height: 54px; border-radius: 50%; background-color: rgba(217, 119, 6, 0.08); border: 2px solid var(--color-accent-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                    <svg width="24" height="24" fill="none" stroke="var(--color-accent-light)" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path></svg>
+                  </div>
+                  <h3 style="font-size: 1.35rem; color: var(--text-primary); margin-bottom: 12px; font-family: 'Outfit';">Aprovação & Destruição Física</h3>
+                  <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 20px; font-weight: 300;">
+                    Você está prestes a aprovar o cadastro de <strong id="confirmCandName" style="color: var(--text-primary);">Carlos Santos</strong>. Para conformidade estrita da LGPD (Art. 15 e 16), os seguintes arquivos serão <strong>deletados permanentemente</strong> dos servidores:
+                  </p>
+                  <ul style="text-align: left; background-color: rgba(0,0,0,0.2); padding: 16px 20px; border-radius: 10px; margin-bottom: 24px; font-size: 0.8rem; list-style-type: none; line-height: 1.6; color: var(--text-secondary); border: var(--border-thin);">
+                    <li style="display: flex; align-items: center; gap: 8px;">🔴 <code style="color: var(--color-accent-light);">CNH_Frente_Verso.jpg</code> (Documento de Identidade)</li>
+                    <li style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">🔴 <code style="color: var(--color-accent-light);">Atestado_Civil_Pol_Sp.pdf</code> (Certidão de Antecedentes)</li>
+                  </ul>
+                  <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-danger" onclick="closeConfirmModal()" style="flex: 0.4; padding: 12px;">Cancelar</button>
+                    <button class="btn btn-brand" onclick="executeApproveCandidate()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, var(--color-brand) 0%, #10b981 100%);">
+                      <span>🛡️</span> SIM, CONFIRMAR E EXCLUIR
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- SHREDDER OVERLAY -->
+              <div class="shredder-overlay" id="shredderOverlay">
+                <div class="shredder-machine">
+                  <div class="shredder-paper-input"></div>
+                  <div class="shredder-output-container">
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                    <div class="shredder-strip"></div>
+                  </div>
+                </div>
+                <h3 style="color: var(--color-brand-light); margin-bottom: 8px;">Deleção Física Segura</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; max-width: 340px; text-align: center; line-height: 1.45; font-weight: 300;">
+                  Picotando e apagando o arquivo criminológico em PDF da infraestrutura do Supabase de forma irrecuperável...
+                </p>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+  </div>
+
+  <script>
+    // State of the simulator
+    let currentStep = 1;
+    let candidate = null;
+    let uploadStatus = {
+      selfie: false,
+      rg: false,
+      atestado: false
+    };
+    let isLoggedAdmin = false;
+
+    // Login function for Gestor
+    function loginAdmin() {
+      const btn = document.getElementById('btnLoginAdmin');
+      const text = document.getElementById('loginBtnText');
+      const spinner = document.getElementById('loginBtnSpinner');
+
+      text.style.display = 'none';
+      spinner.style.display = 'inline-block';
+      btn.style.opacity = '0.8';
+      btn.disabled = true;
+
+      // Simulate authentication request
+      setTimeout(() => {
+        isLoggedAdmin = true;
+        
+        // Premium transition slide-fade out
+        const loginScreen = document.getElementById('adminLoginScreen');
+        loginScreen.style.opacity = '0';
+        loginScreen.style.transform = 'scale(0.96)';
+        
+        setTimeout(() => {
+          loginScreen.style.display = 'none';
+          document.getElementById('adminMainDashboard').style.display = 'block';
+        }, 500);
+
+      }, 1000);
+    }
+
+    // Phone LP to Wizard transition
+    function startWizard() {
+      document.getElementById('phoneLPContent').style.display = 'none';
+      document.getElementById('phoneWizardContent').style.display = 'flex';
+      goStep(1);
+    }
+
+    function goStep(stepNum) {
+      // Hide all panes
+      document.querySelectorAll('.form-wizard-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.step-indicator').forEach(s => s.classList.remove('active'));
+      
+      // Activate target pane
+      document.getElementById(`pane${stepNum}`).classList.add('active');
+      document.getElementById(`step${stepNum}`).classList.add('active');
+      
+      // Update done steps
+      for(let i=1; i<stepNum; i++) {
+        document.getElementById(`step${i}`).classList.add('done');
+      }
+      for(let i=stepNum; i<=3; i++) {
+        document.getElementById(`step${i}`).classList.remove('done');
+      }
+      
+      currentStep = stepNum;
+    }
+
+    function mockUpload(docType) {
+      uploadStatus[docType] = true;
+      document.getElementById(`badge-${docType}`).style.display = 'inline-flex';
+    }
+
+    function submitOnboarding() {
+      // Validate inputs
+      const name = document.getElementById('pName').value;
+      const cpf = document.getElementById('pCPF').value;
+      const celular = document.getElementById('pCel').value;
+      const loc = document.getElementById('pLoc').value;
+
+      if(!name || !cpf || !celular || !loc) {
+        alert('Por favor, preencha todos os dados pessoais do Passo 1!');
+        goStep(1);
+        return;
+      }
+
+      if(!uploadStatus.selfie || !uploadStatus.rg || !uploadStatus.atestado) {
+        alert('Por favor, carregue os documentos biometria e certidão criminológica nos Passos 2 e 3!');
+        if(!uploadStatus.selfie || !uploadStatus.rg) goStep(2);
+        else goStep(3);
+        return;
+      }
+
+      // Transition phone view to waiting screen
+      document.getElementById('phoneWizardContent').style.display = 'none';
+      document.getElementById('phoneWaitingContent').style.display = 'flex';
+
+      // Push candidate to administrative queue on the right
+      candidate = {
+        name,
+        cpf,
+        celular,
+        loc,
+        status: 'Pendente'
+      };
+
+      // Populate admin sidebar list
+      document.getElementById('no-candidates-msg').style.display = 'none';
+      const queueList = document.getElementById('candidates-list');
+      queueList.innerHTML = `
+        <div class="candidate-card active" onclick="selectCandidate()">
+          <div class="candidate-avatar" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200');"></div>
+          <div class="candidate-info">
+            <h4>${name}</h4>
+            <p>${loc}</p>
+            <span class="candidate-status status-pending" id="admCandStatusLabel">Triagem Pendente</span>
+          </div>
+        </div>
+      `;
+
+      // Select candidate automatically to display in main administrative panel if logged in
+      if(isLoggedAdmin) {
+        selectCandidate();
+      }
+    }
+
+    function selectCandidate() {
+      if(!candidate) return;
+      
+      document.getElementById('adminEmptyState').style.display = 'none';
+      document.getElementById('triagingDataContainer').style.display = 'block';
+
+      // Populate data fields
+      document.getElementById('admCandName').innerText = candidate.name;
+      document.getElementById('admCandContact').innerText = `Celular: ${candidate.celular} | Local: ${candidate.loc}`;
+      document.getElementById('admCandCPF').innerText = candidate.cpf;
+    }
+
+    function approveCandidate() {
+      if(!candidate) return;
+
+      // Display beautiful professional confirmation modal listing both files to delete
+      document.getElementById('confirmCandName').innerText = candidate.name;
+      document.getElementById('confirmOverlay').style.display = 'flex';
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmOverlay').style.display = 'none';
+    }
+
+    function executeApproveCandidate() {
+      closeConfirmModal();
+      
+      // Display shredder animation overlay
+      document.getElementById('shredderOverlay').style.display = 'flex';
+
+      // Simulate permanent physical document & PDF shredding time (2.5 seconds)
+      setTimeout(() => {
+        document.getElementById('shredderOverlay').style.display = 'none';
+        
+        // Shred visual presentation in document container
+        const pdfView = document.getElementById('pdfDocumentView');
+        pdfView.style.transform = 'translateY(100%)';
+        pdfView.style.opacity = '0';
+        pdfView.innerHTML = `
+          <div style="color: var(--color-brand-light); font-weight: bold; text-align: center; padding-top: 60px; font-size: 0.95rem; font-family: 'Outfit';">
+            🗑️ CERTIDÃO PDF DESTRUÍDA<br>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: normal; display: block; margin-top: 10px; line-height: 1.45; font-family: 'Inter';">
+              A certidão original foi picotada e apagada fisicamente de forma irreversível do banco Supabase. LGPD Art. 15 e 16 rigorosamente cumpridos.
+            </span>
+          </div>
+        `;
+        pdfView.style.backgroundColor = 'transparent';
+        pdfView.style.transform = 'translateY(0)';
+        pdfView.style.opacity = '1';
+
+        // Shred CNH/RG document in UI as well!
+        const idBox = document.getElementById('idPhotosContainer');
+        idBox.style.transform = 'translateY(100%)';
+        idBox.style.opacity = '0';
+        setTimeout(() => {
+          idBox.innerHTML = `
+            <div class="doc-photo" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'); width: 100%; height: 100%;" title="Selfie de Biometria Ativa"></div>
+            <div style="grid-column: span 2; margin-top: 12px; padding: 12px; background-color: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; text-align: center; font-size: 0.7rem; color: var(--color-brand-light); font-weight: 500; line-height: 1.3;">
+              🗑️ RG/CNH EXCLUÍDO PERMANENTEMENTE<br>
+              <span style="font-size: 0.62rem; color: var(--text-secondary); font-weight: 300; display: block; margin-top: 4px;">Apenas a selfie de biometria facial é retida para segurança condominial de acesso.</span>
+            </div>
+          `;
+          idBox.style.transform = 'translateY(0)';
+          idBox.style.opacity = '1';
+        }, 300);
+
+        // Update status of candidate in admin panel
+        candidate.status = 'Aprovado';
+        document.getElementById('admCandStatusLabel').className = 'candidate-status status-approved';
+        document.getElementById('admCandStatusLabel').innerText = 'Cadastro Aprovado';
+
+        // Notify simulated phone in realtime (Left side update!)
+        document.getElementById('phoneWaitingContent').style.display = 'none';
+        document.getElementById('phoneApprovedContent').style.display = 'flex';
+
+      }, 2500);
+    }
+
+    function rejectCandidate() {
+      if(!candidate) return;
+      alert('Triagem recusada! O profissional será orientado a reemitir a certidão correta.');
+      resetSimulator();
+    }
+
+    function resetSimulator() {
+      // Reset state variables
+      currentStep = 1;
+      candidate = null;
+      uploadStatus = {
+        selfie: false,
+        rg: false,
+        atestado: false
+      };
+
+      // Reset upload badges
+      document.getElementById('badge-selfie').style.display = 'none';
+      document.getElementById('badge-rg').style.display = 'none';
+      document.getElementById('badge-atestado').style.display = 'none';
+
+      // Reset ID photos container
+      const idBox = document.getElementById('idPhotosContainer');
+      if (idBox) {
+        idBox.style = '';
+        idBox.innerHTML = `
+          <div class="doc-photo" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200');" title="Selfie enviada"></div>
+          <div class="doc-photo" style="background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'); border: 3px solid var(--color-accent);" title="Documento CNH oficial"></div>
+        `;
+      }
+
+      // Reset PDF visual representation
+      const pdfView = document.getElementById('pdfDocumentView');
+      pdfView.style = '';
+      pdfView.innerHTML = `
+        <div style="border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px; text-align: center; font-weight: bold; font-size: 0.65rem; color: #0f172a; font-family: 'Outfit';">
+          POLÍCIA CIVIL DO ESTADO DE SÃO PAULO<br>
+          INSTITUTO DE IDENTIFICAÇÃO RICARDO GUMBLETON DAUNT
+        </div>
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.7rem; text-align: center;">
+          ATESTADO DE ANTECEDENTES CRIMINAIS
+        </div>
+        <p style="margin-bottom: 8px; color: #334155; font-size: 0.68rem;">Certificamos para fins de triagem de segurança corporativa que o cidadão:</p>
+        <p style="font-weight: bold; margin-bottom: 8px; color: #0f172a;">NOME: CARLOS SANTOS<br>CPF: 123.456.789-00</p>
+        <p style="margin-bottom: 12px; color: var(--color-brand); font-weight: bold; font-size: 0.72rem; display: flex; align-items: center; gap: 4px;">
+          ✓ NADA CONSTA de registros criminais ativos nesta instituição.
+        </p>
+        <div style="font-size: 0.55rem; color: var(--text-muted); text-align: center; margin-top: 16px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+          Autenticidade Segura: SP-998811A-2026<br>
+          Sessão monitorada em ambiente fechado LGPD.
+        </div>
+      `;
+
+      // Reset phone screens
+      document.getElementById('phoneApprovedContent').style.display = 'none';
+      document.getElementById('phoneWaitingContent').style.display = 'none';
+      document.getElementById('phoneWizardContent').style.display = 'none';
+      document.getElementById('phoneLPContent').style.display = 'flex';
+
+      // Reset admin dashboard view
+      document.getElementById('candidates-list').innerHTML = '';
+      document.getElementById('no-candidates-msg').style.display = 'block';
+      document.getElementById('triagingDataContainer').style.display = 'none';
+      document.getElementById('adminEmptyState').style.display = 'flex';
+
+      // Reset income simulator to default (med - 3 services/day)
+      setCalculatedIncome(3, 'med');
+    }
+
+    function setCalculatedIncome(qty, chipId) {
+      // Deactivate all chips
+      ['low', 'med', 'high'].forEach(id => {
+        const chip = document.getElementById(`chip-${id}`);
+        if(chip) {
+          chip.style.borderColor = 'rgba(255,255,255,0.08)';
+          chip.style.backgroundColor = 'rgba(255,255,255,0.02)';
+          chip.style.color = 'var(--text-secondary)';
+        }
+      });
+
+      // Activate clicked chip
+      const activeChip = document.getElementById(`chip-${chipId}`);
+      if(activeChip) {
+        activeChip.style.borderColor = 'var(--color-accent)';
+        activeChip.style.backgroundColor = 'rgba(217, 119, 6, 0.08)';
+        activeChip.style.color = 'var(--color-accent-light)';
+      }
+
+      // Update readout text
+      const readout = document.getElementById('income-readout');
+      const desc = document.getElementById('income-desc');
+
+      if(qty === 2) {
+        readout.innerHTML = `R$ 3.840<span style="font-size: 0.85rem; font-weight: 400; color: var(--text-secondary); letter-spacing: 0;">/mês</span>`;
+        desc.innerHTML = `Fazendo 10 diárias por semana. <strong>Receba 80% limpos</strong> via split PIX instantâneo direto na sua conta.`;
+      } else if(qty === 3) {
+        readout.innerHTML = `R$ 5.760<span style="font-size: 0.85rem; font-weight: 400; color: var(--text-secondary); letter-spacing: 0;">/mês</span>`;
+        desc.innerHTML = `Fazendo 15 diárias por semana. <strong>Receba 80% limpos</strong> via split PIX instantâneo direto na sua conta.`;
+      } else if(qty === 4) {
+        readout.innerHTML = `R$ 7.680<span style="font-size: 0.85rem; font-weight: 400; color: var(--text-secondary); letter-spacing: 0;">/mês</span>`;
+        desc.innerHTML = `Fazendo 20 diárias por semana. <strong>Receba 80% limpos</strong> via split PIX instantâneo direto na sua conta.`;
+      }
+    }
+  </script>
+</body>
+</html>

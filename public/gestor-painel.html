@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva Serviços — Painel de Triagem Administrativa (Gestor)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    /* Unique layout styles for standalone backoffice workstation view */
+    .admin-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-primary);
+    }
+
+    /* Workplace Header */
+    .admin-nav {
+      background-color: #0b0f19;
+      padding: 16px 32px;
+      border-bottom: var(--border-thin);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150');
+      background-size: cover;
+      background-position: center;
+      border: 2px solid var(--color-brand);
+    }
+
+    /* Desk Workspace Grid */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      flex: 1;
+      height: calc(100vh - 69px);
+      overflow: hidden;
+    }
+
+    /* Queue Sidebar */
+    .queue-sidebar {
+      background-color: rgba(15, 19, 31, 0.5);
+      border-right: var(--border-thin);
+      display: flex;
+      flex-direction: column;
+      overflow-y: hidden;
+    }
+
+    /* Tabs Bar inside Sidebar */
+    .sidebar-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: var(--border-thin);
+      background-color: rgba(7, 9, 14, 0.3);
+    }
+
+    .sidebar-tabs-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: var(--border-thin);
+      background-color: rgba(7, 9, 14, 0.3);
+    }
+
+    .tab-btn {
+      padding: 12px 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      border-bottom: 2px solid transparent;
+      font-family: 'Outfit';
+    }
+
+    .tab-btn:hover {
+      color: var(--text-secondary);
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+
+    .tab-btn.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--color-brand-light);
+      background-color: rgba(5, 150, 105, 0.05);
+    }
+
+    .sidebar-title-row {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: var(--border-thin);
+    }
+
+    .sidebar-title-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+
+    .queue-list {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .candidate-card {
+      padding: 14px 20px;
+      border-bottom: var(--border-thin);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .candidate-card:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .candidate-card.active {
+      background-color: rgba(5, 150, 105, 0.06);
+      border-left: 3.5px solid var(--color-brand-light);
+    }
+
+    .card-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg-tertiary);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card-info h4 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .card-info p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Triaging central desk */
+    .triaging-desk {
+      padding: 32px 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .workspace-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 24px;
+    }
+
+    .desk-card {
+      background-color: var(--bg-secondary);
+      border: var(--border-thin);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .desk-card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 8px;
+    }
+
+    /* Photos Dock */
+    .photos-dock {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: 200px;
+      margin-bottom: 16px;
+    }
+
+    .avatar-photo-box {
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg-primary);
+      border: var(--border-thin);
+      height: 100%;
+    }
+
+    /* PDF Shreddable viewer */
+    .pdf-viewport {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      height: 290px;
+      overflow: hidden;
+      position: relative;
+      background-color: #fff;
+    }
+
+    .pdf-sheet {
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      color: #0f172a;
+      font-size: 0.72rem;
+      font-family: 'Inter', sans-serif;
+      overflow-y: auto;
+      line-height: 1.45;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.05);
+      transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Shredder overlays */
+    .overlay-window {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      background-color: rgba(7, 9, 14, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      backdrop-filter: blur(8px);
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Glassmorphic Login Overlay */
+    .admin-login-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, rgba(15, 19, 31, 0.95) 0%, #07090e 100%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Checklist Styles */
+    .checklist-box {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background-color: rgba(255,255,255,0.02);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: var(--border-thin);
+      cursor: pointer;
+    }
+
+    .checklist-item input {
+      accent-color: var(--color-brand-light);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Grid for detailed profiles */
+    .profile-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.8fr;
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    /* Inline SVG Icon specs */
+    .icon-svg {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      vertical-align: middle;
+      shrink: 0;
+    }
+
+    .icon-tab {
+      width: 14px;
+      height: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= ADMINISTRATOR CREDENTIALS CARD ================= -->
+  <div class="admin-login-screen" id="adminLoginScreen">
+    <div class="card-glass" style="width: 100%; max-width: 420px; padding: 40px 32px; text-align: center;">
+      <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background-color: rgba(5,150,105,0.08); border: 2px solid var(--color-brand); margin-bottom: 24px;">
+        <svg width="28" height="28" fill="none" stroke="var(--color-brand-light)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"></path></svg>
+      </div>
+      
+      <h2 style="font-size: 1.6rem; font-family: 'Outfit'; margin-bottom: 8px;">Área Restrita</h2>
+      <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 32px; font-weight: 300;">Entre com suas credenciais de gestor local.</p>
+      
+      <div class="input-group">
+        <label for="adm-email">E-mail Corporativo</label>
+        <input type="email" id="adm-email" value="mariana.alves@reservaservicos.com.br">
+      </div>
+      
+      <div class="input-group" style="margin-bottom: 32px;">
+        <label for="adm-pass">Senha de Acesso</label>
+        <input type="password" id="adm-pass" value="••••••••">
+      </div>
+      
+      <button class="btn btn-brand" onclick="loginAdmin()">
+        <span>Acessar Painel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= STANDALONE BACKOFFICE PORTAL ================= -->
+  <div class="admin-viewport">
+    
+    <!-- Workplace Header Bar -->
+    <nav class="admin-nav">
+      <div class="admin-brand">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-light)" stroke-width="2" style="width: 22px; height: 22px; color: var(--color-brand-light);"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <div class="admin-logo">
+          Reserva Serviços 
+          <span style="font-size: 0.72rem; color: var(--color-brand-light); font-weight: 600; text-transform: uppercase; background-color: rgba(5,150,105,0.12); padding: 3px 10px; border-radius: 12px; margin-left: 6px; letter-spacing: 0.5px; display: inline-flex; align-items: center;">Módulo de Prestadores</span>
+        </div>
+      </div>
+      
+      <div class="admin-profile">
+        <div style="text-align: right;">
+          <h4 style="font-size: 0.88rem; color: var(--text-primary); font-weight: 600;">Mariana Alves</h4>
+          <p style="font-size: 0.7rem; color: var(--color-brand-light); font-weight: 500;">Gestora Operacional</p>
+        </div>
+        <div class="admin-avatar"></div>
+      </div>
+    </nav>
+
+    <!-- Workplace Desk Layout -->
+    <div class="admin-grid">
+      
+      <!-- Candidate Fila Sidebar -->
+      <aside class="queue-sidebar">
+        
+        <!-- Sidebar Navigation Tabs -->
+        <div class="sidebar-tabs">
+          <button id="tab-pendente" class="tab-btn active" onclick="switchTab('Pendente')">
+            <svg class="icon-svg icon-tab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+            Triagem
+          </button>
+          <button id="tab-ativo" class="tab-btn" onclick="switchTab('Aprovado')">
+            <svg class="icon-svg icon-tab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Ativos
+          </button>
+        </div>
+        <div class="sidebar-tabs-row-2">
+          <button id="tab-inativo" class="tab-btn" onclick="switchTab('Inativo')">
+            <svg class="icon-svg icon-tab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Inativos
+          </button>
+          <button id="tab-banido" class="tab-btn" onclick="switchTab('Banido')">
+            <svg class="icon-svg icon-tab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            Banidos
+          </button>
+        </div>
+
+        <div class="sidebar-title-row">
+          <span class="sidebar-title-text" id="queue-category-title">Fila de Triagem</span>
+          <span class="badge badge-brand" id="queue-badge-count" style="font-size: 0.6rem; padding: 2px 6px;">0</span>
+        </div>
+
+        <div class="queue-list" id="candidates-list-container">
+          <!-- Populated dynamically via script -->
+        </div>
+      </aside>
+
+      <!-- Central desk workspace -->
+      <main class="triaging-desk">
+        
+        <!-- ================= EMPTY WORKSPACE ================= -->
+        <div id="workspace-empty" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background-color: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <svg width="28" height="28" fill="none" stroke="var(--text-muted)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </div>
+          <h3 style="font-size: 1.15rem; color: var(--text-muted); font-family: 'Outfit'; font-weight: 500;" id="empty-state-title">Selecione um Candidato</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); max-width: 340px; margin-top: 8px; font-weight: 300;" id="empty-state-description">Navegue pelas abas acima e clique em um prestador de serviços na fila lateral para visualizar suas informações, notas e histórico.</p>
+        </div>
+
+        <!-- ================= WORKSPACE: ACTIVE PENDENTE (TRIAGEM) ================= -->
+        <div id="workspace-triaging" style="display: none; flex-direction: column; flex: 1;">
+          
+          <!-- Header details -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: var(--border-thin); padding-bottom: 18px;">
+            <div style="text-align: left;">
+              <h2 style="font-size: 1.45rem; font-family: 'Outfit';" id="tri-cand-name">Carlos Santos</h2>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; font-weight: 300;" id="tri-cand-info">Torre B, Apto 104 | CEP: 05386-300</p>
+            </div>
+            <div>
+              <span class="badge badge-accent">Aguardando Triagem</span>
+            </div>
+          </div>
+
+          <!-- Dual card workspace grid -->
+          <div class="workspace-split">
+            
+            <!-- Column 1: Visual Biometrics Identity Verification -->
+            <div class="desk-card">
+              <h3>Identidade & Verificação Biométrica</h3>
+              
+              <div class="photos-dock">
+                <div class="avatar-photo-box" id="tri-selfie-box" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200');" title="Selfie de Cadastro"></div>
+                <div class="avatar-photo-box" id="tri-cnh-box" style="background-image: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'); border: 2px solid var(--color-accent);" title="Foto da CNH/RG Anexado"></div>
+              </div>
+              
+              <!-- Checklist of Manual Validation -->
+              <div style="background-color: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 14px; text-align: left;">
+                <h4 style="font-size: 0.75rem; font-weight: 600; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-light)" stroke-width="2" style="width: 14px; height: 14px; color: var(--color-brand-light);"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  Checklist de Homologação Manual
+                </h4>
+                <p style="font-size: 0.68rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.35;">
+                  Verificação Visual Humana: Certifique que o rosto na selfie coincide com a identificação antes de liberar o acesso condominial.
+                </p>
+                
+                <div class="checklist-box">
+                  <label class="checklist-item">
+                    <input type="checkbox" id="chk-selfie" onchange="toggleTriagingCheckboxes()">
+                    <span>Rosto da selfie e documento oficial coincidem</span>
+                  </label>
+                  <label class="checklist-item">
+                    <input type="checkbox" id="chk-cpf" onchange="toggleTriagingCheckboxes()">
+                    <span>Nome e CPF impressos batem com formulário</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 2: Police background certificate check -->
+            <div class="desk-card">
+              <h3>Atestado Policial de Antecedentes</h3>
+              
+              <div class="pdf-viewport">
+                <!-- Visual Document Page -->
+                <div class="pdf-sheet" id="tri-pdf-sheet">
+                  <div style="border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px; text-align: center; font-weight: bold; font-size: 0.65rem; color: #0f172a; font-family: 'Outfit';">
+                    POLÍCIA CIVIL DO ESTADO DE SÃO PAULO<br>
+                    INSTITUTO DE IDENTIFICAÇÃO RICARDO GUMBLETON DAUNT
+                  </div>
+                  <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.7rem; text-align: center;">
+                    ATESTADO DE ANTECEDENTES CRIMINAIS
+                  </div>
+                  <p style="margin-bottom: 8px; color: #334155; font-size: 0.68rem;">Certificamos para fins de triagem de segurança corporativa que o cidadão:</p>
+                  <p style="font-weight: bold; margin-bottom: 8px; color: #0f172a;" id="tri-pdf-credentials">NOME: CARLOS SANTOS<br>CPF: 123.456.789-00</p>
+                  <p style="margin-bottom: 12px; color: var(--color-brand); font-weight: bold; font-size: 0.72rem; display: flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px; color: var(--color-brand); display: inline-block; vertical-align: middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    NADA CONSTA de registros criminais ativos nesta instituição.
+                  </p>
+                  <div style="font-size: 0.55rem; color: var(--text-muted); text-align: center; margin-top: 24px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                    Autenticidade Segura: SP-998811A-2026<br>
+                    Sessão monitorada em ambiente fechado LGPD.
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+
+          </div>
+
+          <!-- Triaging Action Buttons -->
+          <div style="margin-top: 36px; display: flex; gap: 20px;">
+            <button class="btn btn-danger" onclick="rejectCandidate()" style="flex: 0.3;">Recusar Cadastro</button>
+            <button class="btn btn-brand" id="btn-approve-triage" onclick="approveCandidate()" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" disabled>
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              APROVAR CADASTRO (LGPD)
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ================= WORKSPACE: ACTIVE / HOMOLOGADO DETAIL ================= -->
+        <div id="workspace-homologated" style="display: none; flex-direction: column; flex: 1;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: var(--border-thin); padding-bottom: 18px;">
+            <div style="text-align: left;">
+              <h2 style="font-size: 1.45rem; font-family: 'Outfit';" id="prof-name">Maria de Oliveira</h2>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; font-weight: 300;" id="prof-loc">Reserva Raposo — Torre E, Apto 1201 | Ativo desde Ontem</p>
+            </div>
+            <div>
+              <span class="badge" id="prof-status-badge">Ativo & Verificado</span>
+            </div>
+          </div>
+
+          <!-- Active Profile Layout -->
+          <div class="profile-details-grid">
+            
+            <!-- Left Card: Biometrics & Persisted info -->
+            <div class="desk-card" style="height: fit-content; gap: 16px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="card-avatar" id="prof-avatar" style="width: 64px; height: 64px; background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200');"></div>
+                <div style="text-align: left;">
+                  <span class="badge badge-brand" style="font-size: 0.65rem; display: inline-flex; align-items: center; gap: 4px;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 10px; height: 10px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Homologado LGPD
+                  </span>
+                  <div id="prof-rating" style="font-size: 1.35rem; font-weight: 700; color: var(--color-accent-light); font-family: 'Outfit'; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                    4.9 
+                    <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted); display: inline-flex; align-items: center; gap: 3px;">
+                      <svg viewBox="0 0 24 24" fill="currentColor" style="width: 13px; height: 13px; color: var(--color-accent);"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> 
+                      (32 Avaliações)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Persisted registration info visual -->
+              <div style="background-color: rgba(255,255,255,0.01); border: var(--border-thin); border-radius: 12px; padding: 14px; text-align: left;">
+                <h4 style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">Informações de Cadastro</h4>
+                
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.72rem; color: var(--text-secondary); line-height: 1.8;">
+                  <tr>
+                    <td style="font-weight: 600; width: 85px; color: var(--text-muted);">CPF:</td>
+                    <td id="prof-cpf">123.456.789-00</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600; color: var(--text-muted);">WhatsApp:</td>
+                    <td id="prof-phone">(11) 99999-9999</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600; vertical-align: top; color: var(--text-muted);">Endereço:</td>
+                    <td id="prof-address" style="line-height: 1.4;">Rua Raposo Tavares, Nº 120 (Apto 1201) - Jd Raposo Tavares, São Paulo / SP</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right Card: Job history and ratings -->
+            <div class="desk-card">
+              <h3>Histórico Operacional & Avaliações</h3>
+              
+              <!-- Performance indicators -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+                <div style="background-color: rgba(255,255,255,0.01); border: var(--border-thin); padding: 12px; border-radius: 10px; text-align: left;">
+                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Atendimentos</span>
+                  <div style="font-size: 1.4rem; font-weight: 700; color: #fff; font-family: 'Outfit'; margin-top: 2px;">142 Diárias</div>
+                </div>
+                <div style="background-color: rgba(255,255,255,0.01); border: var(--border-thin); padding: 12px; border-radius: 10px; text-align: left;">
+                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Fundo de Proteção</span>
+                  <div style="font-size: 1.4rem; font-weight: 700; color: var(--color-accent-light); font-family: 'Outfit'; margin-top: 2px;">R$ 480,00 <span style="font-size: 0.62rem; color: var(--text-muted); font-weight: normal;">Acumulado</span></div>
+                </div>
+              </div>
+
+              <!-- List of completed jobs -->
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;" id="prof-jobs-list">
+                <!-- Populated dynamically -->
+              </div>
+
+              <!-- Admin controls for Profile -->
+              <div style="border-top: var(--border-thin); padding-top: 18px; margin-top: 18px; display: flex; gap: 12px;" id="profile-action-buttons">
+                <!-- Loaded dynamically depending on state -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ================= DUAL CONFIRMATION OVERLAY MODAL ================= -->
+        <div class="overlay-window" id="confirmOverlay" style="display: none;">
+          <div class="card-glass" style="max-width: 460px; text-align: center; border-color: rgba(5, 150, 105, 0.35); padding: 40px 32px;">
+            <div style="width: 58px; height: 58px; border-radius: 50%; background-color: rgba(5, 150, 105, 0.08); border: 2px solid var(--color-brand-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+              <svg width="24" height="24" fill="none" stroke="var(--color-brand-light)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            
+            <h3 style="font-size: 1.45rem; color: var(--text-primary); margin-bottom: 12px; font-family: 'Outfit'; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              Aprovar Prestador
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 28px; font-weight: 300;">
+              Você está aprovando o cadastro de <strong id="confirmCandName" style="color: #fff;">Carlos Santos</strong> como prestador ativo no Reserva Serviços. As credenciais operacionais dele serão ativadas e o profissional estará elegível a realizar atendimentos no condomínio.
+            </p>
+            
+            <div style="display: flex; gap: 12px;">
+              <button class="btn btn-danger" onclick="closeConfirmModal()" style="flex: 0.4; padding: 12px 20px;">Cancelar</button>
+              <button class="btn btn-brand" onclick="executeApproveCandidate()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, var(--color-brand) 0%, #10b981 100%); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                SIM, APROVAR CADASTRO
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= DIGITAL CSS PROCESSING OVERLAY ================= -->
+        <div class="overlay-window" id="shredderOverlay" style="display: none; background-color: rgba(7, 9, 14, 0.96);">
+          <div style="text-align: center;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background-color: rgba(5, 150, 105, 0.08); border: 2px solid var(--color-brand); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; animation: pulse 1.5s infinite;">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-light)" stroke-width="2.5" style="width: 28px; height: 28px; animation: spin 2s linear infinite;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.25"/></svg>
+            </div>
+            
+            <h3 style="font-size: 1.4rem; color: var(--text-primary); font-family: 'Outfit'; margin-bottom: 8px;">Estamos processando cadastro</h3>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; font-weight: 300; max-width: 320px; margin: 0 auto 24px auto; line-height: 1.45;">
+              Sincronizando informações e ativando credenciais de acesso condominial...
+            </p>
+            
+            <!-- Beautiful animated fragmenter mimic visual -->
+            <div style="width: 280px; height: 60px; border: var(--border-thin); border-radius: 12px; background-color: rgba(0,0,0,0.25); position: relative; overflow: hidden; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 12px;">
+              <div style="height: 4px; background: linear-gradient(90deg, var(--color-brand) 0%, #10b981 50%, var(--color-brand) 100%); border-radius: 2px; animation: pulse-glow 0.8s infinite;"></div>
+              <div style="display: flex; justify-content: space-around;">
+                <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
+                <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
+                <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
+                <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
+                <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      
+    </div>
+  </div>
+
+  <script>
+    // Manager Workspace state
+    let isLogged = false;
+    let selectedId = null;
+    let activeTab = 'Pendente'; // 'Pendente' (Triagem), 'Aprovado' (Ativo), 'Inativo', 'Banido'
+
+    // Mock candidates queue representing the complete backoffice module
+    let queueList = [
+      {
+        id: '1',
+        name: 'Carlos Santos',
+        cpf: '123.456.789-00',
+        phone: '(11) 98765-4321',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre B, Apto 104',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre B, Apto 104) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '10:42',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '2',
+        name: 'Joana Silva',
+        cpf: '234.567.890-11',
+        phone: '(11) 99122-3344',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre F, Apto 402',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre F, Apto 402) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '09:15',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '3',
+        name: 'Marcos Oliveira',
+        cpf: '345.678.901-22',
+        phone: '(11) 98233-4455',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre A, Apto 807',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre A, Apto 807) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '08:30',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '4',
+        name: 'Ana Paula Costa',
+        cpf: '456.789.012-33',
+        phone: '(11) 97344-5566',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre D, Apto 1502',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre D, Apto 1502) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '07:45',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '5',
+        name: 'Ricardo Lima',
+        cpf: '567.890.123-44',
+        phone: '(11) 96455-6677',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre C, Apto 303',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre C, Apto 303) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: 'Ontem',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '6',
+        name: 'Luiz Fernando',
+        cpf: '678.901.234-55',
+        phone: '(11) 95566-7788',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre H, Apto 1204',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre H, Apto 1204) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: 'Ontem',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '7',
+        name: 'Sandra Souza',
+        cpf: '789.012.345-66',
+        phone: '(11) 94677-8899',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre G, Apto 901',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre G, Apto 901) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: 'Ontem',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '8',
+        name: 'Juliana Dias',
+        cpf: '890.123.456-77',
+        phone: '(11) 93788-9900',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre B, Apto 605',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre B, Apto 605) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '3 dias atrás',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '9',
+        name: 'Felipe Mendes',
+        cpf: '901.234.567-88',
+        phone: '(11) 92899-0011',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre E, Apto 204',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre E, Apto 204) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '3 dias atrás',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: '10',
+        name: 'Beatriz Ramos',
+        cpf: '012.345.678-99',
+        phone: '(11) 91900-1122',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre F, Apto 1109',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre F, Apto 1109) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Pendente',
+        timestamp: '4 dias atrás',
+        rating: 'Novo',
+        jobs: [],
+        selfieUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+        cnhUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: 'active_1',
+        name: 'Maria de Oliveira',
+        cpf: '987.654.321-00',
+        phone: '(11) 99122-3344',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre D, Apto 802',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre D, Apto 802) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Aprovado',
+        timestamp: 'Homologado',
+        rating: '4.9',
+        jobs: [
+          { date: '15/05/2026', type: 'Limpeza Residencial (Torre A, Apto 204)', score: '5.0', comment: 'Trabalho muito caprichoso e pontual.' },
+          { date: '12/05/2026', type: 'Limpeza Expressa (Torre B, Apto 1109)', score: '4.8', comment: 'Extremamente simpática e ágil.' },
+          { date: '08/05/2026', type: 'Passadoria Completa (Torre G, Apto 402)', score: '5.0', comment: 'Roupas muito bem passadas.' }
+        ],
+        selfieUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: 'active_2',
+        name: 'José Rodrigues',
+        cpf: '876.543.210-99',
+        phone: '(11) 98111-2233',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre A, Apto 1504',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre A, Apto 1504) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Aprovado',
+        timestamp: 'Homologado',
+        rating: '4.8',
+        jobs: [
+          { date: '14/05/2026', type: 'Reparo Hidráulico (Torre E, Apto 103)', score: '5.0', comment: 'Sanou o vazamento da torneira rapidamente.' },
+          { date: '11/05/2026', type: 'Pequenos Reparos (Torre H, Apto 901)', score: '4.6', comment: 'Instalação de prateleiras muito firme.' }
+        ],
+        selfieUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: 'inactive_1',
+        name: 'Lucas Teixeira',
+        cpf: '765.432.109-88',
+        phone: '(11) 97111-0022',
+        cep: '05386-300',
+        rua: 'Rua Raposo Tavares',
+        num: '120',
+        comp: 'Torre C, Apto 1104',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Rua Raposo Tavares, Nº 120 (Torre C, Apto 1104) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Inativo',
+        timestamp: 'Inativado',
+        rating: '4.5',
+        reason: 'Inativo por solicitação própria (mudou-se temporariamente).',
+        jobs: [
+          { date: '28/04/2026', type: 'Limpeza Básica (Torre B, Apto 302)', score: '4.5', comment: 'Tudo certinho.' }
+        ],
+        selfieUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200'
+      },
+      {
+        id: 'banned_1',
+        name: 'Vitor Nunes',
+        cpf: '654.321.098-77',
+        phone: '(11) 96111-9988',
+        cep: '05386-000',
+        rua: 'Avenida Raposo Tavares',
+        num: '3200',
+        comp: 'Torre G, Apto 502',
+        bairro: 'Jd Raposo Tavares',
+        cidade: 'São Paulo / SP',
+        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre G, Apto 502) - Jd Raposo Tavares, São Paulo / SP',
+        status: 'Banido',
+        timestamp: 'Banido',
+        rating: '3.2',
+        reason: 'Violação grave de segurança: liberação e repasse indevido de tag de acesso condominial a terceiros.',
+        jobs: [
+          { date: '20/04/2026', type: 'Instalação Varal (Torre F, Apto 101)', score: '3.0', comment: 'Serviço ok, mas descumpriu regra de portaria.' }
+        ],
+        selfieUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
+      }
+    ];
+
+    // Login process
+    function loginAdmin() {
+      document.getElementById('adminLoginScreen').style.display = 'none';
+      isLogged = true;
+      loadCandidates();
+    }
+
+    // Switcing sidebar active lists
+    function switchTab(status) {
+      activeTab = status;
+      selectedId = null; // deselect current candidate
+      
+      // Update Tab button visual states
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      if(status === 'Pendente') {
+        document.getElementById('tab-pendente').classList.add('active');
+        document.getElementById('queue-category-title').innerText = 'Fila de Triagem';
+        document.getElementById('empty-state-title').innerText = 'Selecione um Candidato';
+        document.getElementById('empty-state-description').innerText = 'Selecione um perfil pendente para conferência física de antecedentes criminais e homologação LGPD.';
+      } else if (status === 'Aprovado') {
+        document.getElementById('tab-ativo').classList.add('active');
+        document.getElementById('queue-category-title').innerText = 'Prestadores Ativos';
+        document.getElementById('empty-state-title').innerText = 'Perfil Ativo & Verificado';
+        document.getElementById('empty-state-description').innerText = 'Clique em um prestador ativo para acompanhar avaliações, ficha cadastral guardada e controle de acessos.';
+      } else if (status === 'Inativo') {
+        document.getElementById('tab-inativo').classList.add('active');
+        document.getElementById('queue-category-title').innerText = 'Profissionais Inativos';
+        document.getElementById('empty-state-title').innerText = 'Profissional Inativo';
+        document.getElementById('empty-state-description').innerText = 'Selecione um perfil suspenso ou inativo para reativação ou histórico operacional.';
+      } else if (status === 'Banido') {
+        document.getElementById('tab-banido').classList.add('active');
+        document.getElementById('queue-category-title').innerText = 'Profissionais Banidos';
+        document.getElementById('empty-state-title').innerText = 'Prestador Bloqueado';
+        document.getElementById('empty-state-description').innerText = 'Selecione perfis banidos para verificação das infrações corporativas de portaria anotadas.';
+      }
+
+      // Hide workspace views
+      document.getElementById('workspace-empty').style.display = 'flex';
+      document.getElementById('workspace-triaging').style.display = 'none';
+      document.getElementById('workspace-homologated').style.display = 'none';
+
+      loadCandidates();
+    }
+
+    // Load active list queue
+    function loadCandidates() {
+      // Check if there is a newly submitted candidate in localStorage from the onboarding form!
+      const localStorageSession = localStorage.getItem('candidate_session');
+      if (localStorageSession) {
+        try {
+          const freshCandidate = JSON.parse(localStorageSession);
+          const alreadyInQueue = queueList.some(c => c.cpf === freshCandidate.cpf);
+          if(!alreadyInQueue) {
+            // Include full address details
+            queueList.unshift({
+              id: 'fresh',
+              name: freshCandidate.name,
+              cpf: freshCandidate.cpf,
+              phone: freshCandidate.phone,
+              cep: freshCandidate.cep || '05386-300',
+              rua: freshCandidate.rua || 'Rua Raposo Tavares',
+              num: freshCandidate.num || '120',
+              comp: freshCandidate.comp || 'Torre B, Apto 104',
+              bairro: freshCandidate.bairro || 'Jd Raposo Tavares',
+              cidade: freshCandidate.cidade || 'São Paulo / SP',
+              loc: freshCandidate.loc || 'Rua Raposo Tavares, Nº 120 (Torre B, Apto 104) - Jd Raposo Tavares, São Paulo / SP',
+              status: freshCandidate.status,
+              timestamp: freshCandidate.timestamp,
+              rating: 'Novo',
+              jobs: [],
+              selfieUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+              cnhUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
+            });
+          } else {
+            // Update status in case local candidate was approved
+            const matchIndex = queueList.findIndex(c => c.cpf === freshCandidate.cpf);
+            if(matchIndex !== -1 && queueList[matchIndex].status !== freshCandidate.status) {
+              queueList[matchIndex].status = freshCandidate.status;
+            }
+          }
+        } catch(e) {
+          console.error(e);
+        }
+      }
+
+      // Filter list based on tab
+      const filtered = queueList.filter(c => c.status === activeTab);
+      
+      // Update badge count
+      document.getElementById('queue-badge-count').innerText = filtered.length;
+
+      // Populate elements
+      const container = document.getElementById('candidates-list-container');
+      container.innerHTML = '';
+
+      if(filtered.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 300;">
+            Nenhum prestador nesta lista.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(c => {
+        let statusBadge = 'badge-accent';
+        let label = 'Triagem';
+        if(c.status === 'Aprovado') { statusBadge = 'badge-brand'; label = 'Ativo'; }
+        else if(c.status === 'Inativo') { statusBadge = 'badge-error'; label = 'Inativo'; }
+        else if(c.status === 'Banido') { statusBadge = 'badge-error'; label = 'Banido'; }
+
+        const isSelected = selectedId === c.id ? 'active' : '';
+
+        const item = document.createElement('div');
+        item.className = `candidate-card ${isSelected}`;
+        item.setAttribute('onclick', `selectItem('${c.id}')`);
+        item.innerHTML = `
+          <div class="card-avatar" style="background-image: url('${c.selfieUrl}');"></div>
+          <div class="card-info" style="flex: 1; text-align: left;">
+            <h4>${c.name}</h4>
+            <p>${c.comp || c.rua} • ${c.timestamp}</p>
+            <span class="badge ${statusBadge}" style="font-size: 0.6rem; margin-top: 4px; padding: 2px 6px;">${label}</span>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // Select queue item
+    function selectItem(id) {
+      selectedId = id;
+      loadCandidates(); // reload sidebar items active states
+
+      const item = queueList.find(c => c.id === id);
+      if(!item) return;
+
+      document.getElementById('workspace-empty').style.display = 'none';
+
+      if(item.status === 'Pendente') {
+        // Show triaging workspace
+        document.getElementById('workspace-homologated').style.display = 'none';
+        document.getElementById('workspace-triaging').style.display = 'flex';
+
+        document.getElementById('tri-cand-name').innerText = item.name;
+        document.getElementById('tri-cand-info').innerText = `${item.comp || item.rua} | CPF: ${item.cpf}`;
+        
+        // Load Photos
+        document.getElementById('tri-selfie-box').style.backgroundImage = `url('${item.selfieUrl}')`;
+        document.getElementById('tri-cnh-box').style.backgroundImage = `url('${item.cnhUrl}')`;
+        
+        // Set up PDF credentials
+        document.getElementById('tri-pdf-credentials').innerHTML = `NOME: ${item.name.toUpperCase()}<br>CPF: ${item.cpf}`;
+
+        // Reset check indicators
+        document.getElementById('chk-selfie').checked = false;
+        document.getElementById('chk-cpf').checked = false;
+        document.getElementById('btn-approve-triage').setAttribute('disabled', 'true');
+      } else {
+        // Show active or susp/banned persisted workspace details
+        document.getElementById('workspace-triaging').style.display = 'none';
+        document.getElementById('workspace-homologated').style.display = 'flex';
+
+        // Update header details
+        document.getElementById('prof-name').innerText = item.name;
+        document.getElementById('prof-loc').innerText = `Reserva Raposo — ${item.comp || item.rua} | Código #${item.id}`;
+        
+        // Status Badge
+        const badge = document.getElementById('prof-status-badge');
+        badge.className = 'badge';
+        if(item.status === 'Aprovado') {
+          badge.classList.add('badge-success');
+          badge.innerText = 'Ativo & Verificado';
+        } else if(item.status === 'Inativo') {
+          badge.classList.add('badge-error');
+          badge.innerText = 'Inativo';
+        } else if(item.status === 'Banido') {
+          badge.classList.add('badge-error');
+          badge.innerText = 'Perfil Banido';
+        }
+
+        // Left photo avatar
+        document.getElementById('prof-avatar').style.backgroundImage = `url('${item.selfieUrl}')`;
+
+        // Rating
+        if(item.rating === 'Novo') {
+          document.getElementById('prof-rating').innerHTML = `Novo Parceiro <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">Aguardando 1ª diária</span>`;
+        } else {
+          document.getElementById('prof-rating').innerHTML = `
+            ${item.rating} 
+            <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted); display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width: 13px; height: 13px; color: var(--color-accent);"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> 
+              (${item.jobs.length} Avaliações)
+            </span>`;
+        }
+
+        // Persisted parameters
+        document.getElementById('prof-cpf').innerText = item.cpf;
+        document.getElementById('prof-phone').innerText = item.phone;
+        document.getElementById('prof-address').innerText = item.loc;
+
+        // Render completed jobs
+        const jobsContainer = document.getElementById('prof-jobs-list');
+        jobsContainer.innerHTML = '';
+
+        if(item.jobs.length === 0) {
+          jobsContainer.innerHTML = `
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.08); border-radius: 10px; height: 160px; color: var(--text-muted); font-size: 0.75rem; font-weight: 300;">
+              Nenhum serviço realizado ainda neste condomínio.
+            </div>
+          `;
+        } else {
+          item.jobs.forEach(job => {
+            const el = document.createElement('div');
+            el.style.backgroundColor = 'rgba(255,255,255,0.01)';
+            el.style.border = 'var(--border-thin)';
+            el.style.padding = '12px';
+            el.style.borderRadius = '8px';
+            el.style.textAlign = 'left';
+            el.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 0.72rem; font-weight: 600; color: #fff;">${job.type}</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">${job.date}</span>
+              </div>
+              <p style="font-size: 0.68rem; color: var(--text-secondary); line-height: 1.35;">"${job.comment}"</p>
+              <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 0.68rem; color: var(--color-accent-light); font-weight: 600;">
+                Nota do Morador: ${job.score} 
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 11px; height: 11px; color: var(--color-accent); display: inline-block; vertical-align: middle;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              </div>
+            `;
+            jobsContainer.appendChild(el);
+          });
+        }
+
+        // Reason banner if Inactive or Banned
+        if(item.status === 'Inativo' || item.status === 'Banido') {
+          const reasonAlert = document.createElement('div');
+          reasonAlert.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+          reasonAlert.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+          reasonAlert.style.borderRadius = '8px';
+          reasonAlert.style.padding = '10px 12px';
+          reasonAlert.style.fontSize = '0.72rem';
+          reasonAlert.style.color = 'var(--color-error)';
+          reasonAlert.style.textAlign = 'left';
+          reasonAlert.style.marginBottom = '14px';
+          reasonAlert.style.display = 'flex';
+          reasonAlert.style.alignItems = 'flex-start';
+          reasonAlert.style.gap = '6px';
+          reasonAlert.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; color: var(--color-error); shrink: 0; margin-top: 1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span><strong>Nota Administrativa:</strong> ${item.reason}</span>
+          `;
+          jobsContainer.insertBefore(reasonAlert, jobsContainer.firstChild);
+        }
+
+        // Render profile control buttons
+        const actionBtnContainer = document.getElementById('profile-action-buttons');
+        actionBtnContainer.innerHTML = '';
+
+        if(item.status === 'Aprovado') {
+          actionBtnContainer.innerHTML = `
+            <button class="btn btn-danger" onclick="changeProfileStatus('${item.id}', 'Inativo')" style="flex: 1; padding: 12px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Suspender/Inativar
+            </button>
+            <button class="btn btn-danger" onclick="changeProfileStatus('${item.id}', 'Banido')" style="flex: 1; padding: 12px; font-size: 0.85rem; background-color: rgba(239,68,68,0.18); border-color: rgba(239,68,68,0.4); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              BANIR PROFISSIONAL
+            </button>
+          `;
+        } else {
+          // Inativo or Banido
+          actionBtnContainer.innerHTML = `
+            <button class="btn btn-brand" onclick="changeProfileStatus('${item.id}', 'Aprovado')" style="flex: 1; padding: 12px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              REATIVAR PROFISSIONAL
+            </button>
+          `;
+        }
+      }
+    }
+
+    // Toggle Triaging approval action active status based on checkboxes
+    function toggleTriagingCheckboxes() {
+      const chk1 = document.getElementById('chk-selfie').checked;
+      const chk2 = document.getElementById('chk-cpf').checked;
+      const btn = document.getElementById('btn-approve-triage');
+      
+      if(chk1 && chk2) {
+        btn.removeAttribute('disabled');
+      } else {
+        btn.setAttribute('disabled', 'true');
+      }
+    }
+
+    // Administrative state modifiers (Inactivate, Ban, Reactivate)
+    function changeProfileStatus(id, newStatus) {
+      const candidate = queueList.find(c => c.id === id);
+      if(candidate) {
+        candidate.status = newStatus;
+        if(newStatus === 'Inativo') {
+          candidate.reason = 'Inativado por decisão administrativa operacional.';
+        } else if(newStatus === 'Banido') {
+          candidate.reason = 'Bloqueio preventivo administrativo permanente por quebra de termos securitários.';
+        }
+
+        // Sync local storage if it was the live signed candidate
+        const localStorageSession = localStorage.getItem('candidate_session');
+        if (localStorageSession) {
+          try {
+            const freshCand = JSON.parse(localStorageSession);
+            if(freshCand.cpf === candidate.cpf) {
+              freshCand.status = newStatus;
+              localStorage.setItem('candidate_session', JSON.stringify(freshCand));
+            }
+          } catch(e){}
+        }
+
+        switchTab(newStatus);
+        selectItem(id);
+      }
+    }
+
+    // Triaging Modal handlers
+    function approveCandidate() {
+      const candidate = queueList.find(c => c.id === selectedId);
+      if(!candidate) return;
+
+      document.getElementById('confirmCandName').innerText = candidate.name;
+      document.getElementById('confirmOverlay').style.display = 'flex';
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmOverlay').style.display = 'none';
+    }
+
+    // Trigger Digital CSS Shredding
+    function executeApproveCandidate() {
+      closeConfirmModal();
+      
+      const shredder = document.getElementById('shredderOverlay');
+      shredder.style.display = 'flex';
+
+      // Physical permanent document shredding timeline (2.5 seconds)
+      setTimeout(() => {
+        shredder.style.display = 'none';
+        
+        const candidate = queueList.find(c => c.id === selectedId);
+        if(candidate) {
+          candidate.status = 'Aprovado';
+          candidate.timestamp = 'Agora';
+
+          // Synchronize status back in localStorage
+          const localStorageSession = localStorage.getItem('candidate_session');
+          if (localStorageSession) {
+            try {
+              const freshCand = JSON.parse(localStorageSession);
+              if(freshCand.cpf === candidate.cpf) {
+                freshCand.status = 'Aprovado';
+                localStorage.setItem('candidate_session', JSON.stringify(freshCand));
+              }
+            } catch(e){}
+          }
+
+          // Shred documents and render persisted details automatically!
+          switchTab('Aprovado');
+          selectItem(candidate.id);
+        }
+
+      }, 2500);
+    }
+
+    function rejectCandidate() {
+      const candidate = queueList.find(c => c.id === selectedId);
+      if(candidate) {
+        candidate.status = 'Recusado';
+        
+        const localStorageSession = localStorage.getItem('candidate_session');
+        if (localStorageSession) {
+          try {
+            const freshCand = JSON.parse(localStorageSession);
+            if(freshCand.cpf === candidate.cpf) {
+              freshCand.status = 'Recusado';
+              localStorage.setItem('candidate_session', JSON.stringify(freshCand));
+            }
+          } catch(e){}
+        }
+
+        switchTab('Pendente');
+      }
+    }
+  </script>
+</body>
+</html>
