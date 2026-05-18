@@ -20,13 +20,15 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
  * O trigger de banco cria automaticamente a linha correspondente em public.profiles.
  */
 export async function signUpProvider(email, password, name, cpf, phone) {
-  // 1. Criar o usuário de autenticação
+  // 1. Criar o usuário de autenticação com todos os metadados inclusos
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         name,
+        cpf,
+        phone,
         role: "candidate",
       },
     },
@@ -35,13 +37,10 @@ export async function signUpProvider(email, password, name, cpf, phone) {
   if (error) throw error;
   if (!data.user) throw new Error("Erro desconhecido durante o cadastro.");
 
-  // 2. Atualizar os dados adicionais de CPF/Telefone em profiles
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ cpf, phone })
-    .eq("id", data.user.id);
-
-  if (profileError) throw profileError;
+  // Forçar a ativação e persistência imediata da sessão para requisições do cliente subsequentes
+  if (data.session) {
+    await supabase.auth.setSession(data.session);
+  }
 
   return data.user;
 }

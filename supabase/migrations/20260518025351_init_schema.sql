@@ -38,10 +38,12 @@ create index idx_service_providers_status on public.service_providers(status);
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, role)
+  insert into public.profiles (id, name, cpf, phone, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', 'Usuário Novo'),
+    new.raw_user_meta_data->>'cpf',
+    new.raw_user_meta_data->>'phone',
     coalesce(new.raw_user_meta_data->>'role', 'candidate')
   );
   return new;
