@@ -671,317 +671,80 @@
               <div style="display: flex; justify-content: space-around;">
                 <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
                 <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
-                <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
+              <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
                 <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
                 <span style="width: 3px; height: 20px; background-color: var(--text-muted); opacity: 0.4; border-radius: 1px;"></span>
               </div>
             </div>
-          </div>
-        </div>
+        <script type="module" src="./js/components/clipboard-card.js"></script>
+  <script type="module">
+    import { supabase, signIn, fetchProvidersByStatus, updateProviderStatus, approveProvider } from "./js/services/supabase.js";
 
-      </main>
-      
-    </div>
-  </div>
-
-  <script>
     // Manager Workspace state
     let isLogged = false;
     let selectedId = null;
     let activeTab = 'Pendente'; // 'Pendente' (Triagem), 'Aprovado' (Ativo), 'Inativo', 'Banido'
 
-    // Mock candidates queue representing the complete backoffice module
-    let queueList = [
-      {
-        id: '1',
-        name: 'Carlos Santos',
-        cpf: '123.456.789-00',
-        phone: '(11) 98765-4321',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre B, Apto 104',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre B, Apto 104) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '10:42',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '2',
-        name: 'Joana Silva',
-        cpf: '234.567.890-11',
-        phone: '(11) 99122-3344',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre F, Apto 402',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre F, Apto 402) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '09:15',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '3',
-        name: 'Marcos Oliveira',
-        cpf: '345.678.901-22',
-        phone: '(11) 98233-4455',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre A, Apto 807',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre A, Apto 807) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '08:30',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '4',
-        name: 'Ana Paula Costa',
-        cpf: '456.789.012-33',
-        phone: '(11) 97344-5566',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre D, Apto 1502',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre D, Apto 1502) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '07:45',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '5',
-        name: 'Ricardo Lima',
-        cpf: '567.890.123-44',
-        phone: '(11) 96455-6677',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre C, Apto 303',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre C, Apto 303) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: 'Ontem',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '6',
-        name: 'Luiz Fernando',
-        cpf: '678.901.234-55',
-        phone: '(11) 95566-7788',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre H, Apto 1204',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre H, Apto 1204) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: 'Ontem',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '7',
-        name: 'Sandra Souza',
-        cpf: '789.012.345-66',
-        phone: '(11) 94677-8899',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre G, Apto 901',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre G, Apto 901) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: 'Ontem',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '8',
-        name: 'Juliana Dias',
-        cpf: '890.123.456-77',
-        phone: '(11) 93788-9900',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre B, Apto 605',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre B, Apto 605) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '3 dias atrás',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '9',
-        name: 'Felipe Mendes',
-        cpf: '901.234.567-88',
-        phone: '(11) 92899-0011',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre E, Apto 204',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre E, Apto 204) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '3 dias atrás',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: '10',
-        name: 'Beatriz Ramos',
-        cpf: '012.345.678-99',
-        phone: '(11) 91900-1122',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre F, Apto 1109',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre F, Apto 1109) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Pendente',
-        timestamp: '4 dias atrás',
-        rating: 'Novo',
-        jobs: [],
-        selfieUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
-        cnhUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: 'active_1',
-        name: 'Maria de Oliveira',
-        cpf: '987.654.321-00',
-        phone: '(11) 99122-3344',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre D, Apto 802',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre D, Apto 802) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Aprovado',
-        timestamp: 'Homologado',
-        rating: '4.9',
-        jobs: [
-          { date: '15/05/2026', type: 'Limpeza Residencial (Torre A, Apto 204)', score: '5.0', comment: 'Trabalho muito caprichoso e pontual.' },
-          { date: '12/05/2026', type: 'Limpeza Expressa (Torre B, Apto 1109)', score: '4.8', comment: 'Extremamente simpática e ágil.' },
-          { date: '08/05/2026', type: 'Passadoria Completa (Torre G, Apto 402)', score: '5.0', comment: 'Roupas muito bem passadas.' }
-        ],
-        selfieUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: 'active_2',
-        name: 'José Rodrigues',
-        cpf: '876.543.210-99',
-        phone: '(11) 98111-2233',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre A, Apto 1504',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre A, Apto 1504) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Aprovado',
-        timestamp: 'Homologado',
-        rating: '4.8',
-        jobs: [
-          { date: '14/05/2026', type: 'Reparo Hidráulico (Torre E, Apto 103)', score: '5.0', comment: 'Sanou o vazamento da torneira rapidamente.' },
-          { date: '11/05/2026', type: 'Pequenos Reparos (Torre H, Apto 901)', score: '4.6', comment: 'Instalação de prateleiras muito firme.' }
-        ],
-        selfieUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: 'inactive_1',
-        name: 'Lucas Teixeira',
-        cpf: '765.432.109-88',
-        phone: '(11) 97111-0022',
-        cep: '05386-300',
-        rua: 'Rua Raposo Tavares',
-        num: '120',
-        comp: 'Torre C, Apto 1104',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Rua Raposo Tavares, Nº 120 (Torre C, Apto 1104) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Inativo',
-        timestamp: 'Inativado',
-        rating: '4.5',
-        reason: 'Inativo por solicitação própria (mudou-se temporariamente).',
-        jobs: [
-          { date: '28/04/2026', type: 'Limpeza Básica (Torre B, Apto 302)', score: '4.5', comment: 'Tudo certinho.' }
-        ],
-        selfieUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200'
-      },
-      {
-        id: 'banned_1',
-        name: 'Vitor Nunes',
-        cpf: '654.321.098-77',
-        phone: '(11) 96111-9988',
-        cep: '05386-000',
-        rua: 'Avenida Raposo Tavares',
-        num: '3200',
-        comp: 'Torre G, Apto 502',
-        bairro: 'Jd Raposo Tavares',
-        cidade: 'São Paulo / SP',
-        loc: 'Avenida Raposo Tavares, Nº 3200 (Torre G, Apto 502) - Jd Raposo Tavares, São Paulo / SP',
-        status: 'Banido',
-        timestamp: 'Banido',
-        rating: '3.2',
-        reason: 'Violação grave de segurança: liberação e repasse indevido de tag de acesso condominial a terceiros.',
-        jobs: [
-          { date: '20/04/2026', type: 'Instalação Varal (Torre F, Apto 101)', score: '3.0', comment: 'Serviço ok, mas descumpriu regra de portaria.' }
-        ],
-        selfieUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
-      }
-    ];
+    // Setup Realtime PostgreSQL postgres_changes channel
+    function setupRealtimeSubscription() {
+      supabase
+        .channel("public:service_providers")
+        .on("postgres_changes", { event: "*", schema: "public", table: "service_providers" }, () => {
+          loadCandidates();
+        })
+        .subscribe();
+    }
 
-    // Login process
-    function loginAdmin() {
-      document.getElementById('adminLoginScreen').style.display = 'none';
-      isLogged = true;
-      loadCandidates();
+    // Login process with automated administrator first-time onboarding
+    async function loginAdmin() {
+      const email = document.getElementById("adm-email").value.trim();
+      const password = "ReservaSec#Mariana";
+
+      try {
+        let user;
+        try {
+          user = await signIn(email, password);
+        } catch (e) {
+          // Automatic credential creation for rapid developer environments after db reset
+          const signUpRes = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name: "Mariana Alves",
+                role: "master"
+              }
+            }
+          });
+          if (signUpRes.error) throw signUpRes.error;
+          if (!signUpRes.data.user) throw new Error("Falha na criação automática do usuário gestor.");
+
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ role: "master" })
+            .eq("id", signUpRes.data.user.id);
+          
+          if (profileError) throw profileError;
+          user = signUpRes.data.user;
+          await signIn(email, password);
+        }
+
+        document.getElementById("adminLoginScreen").style.display = "none";
+        isLogged = true;
+
+        setupRealtimeSubscription();
+        loadCandidates();
+      } catch (err) {
+        console.error("Erro durante autenticação administrativa:", err);
+        alert(`Erro ao acessar o painel: ${err.message}`);
+      }
     }
 
     // Switcing sidebar active lists
     function switchTab(status) {
       activeTab = status;
-      selectedId = null; // deselect current candidate
+      selectedId = null;
       
-      // Update Tab button visual states
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       
       if(status === 'Pendente') {
@@ -1006,7 +769,6 @@
         document.getElementById('empty-state-description').innerText = 'Selecione perfis banidos para verificação das infrações corporativas de portaria anotadas.';
       }
 
-      // Hide workspace views
       document.getElementById('workspace-empty').style.display = 'flex';
       document.getElementById('workspace-triaging').style.display = 'none';
       document.getElementById('workspace-homologated').style.display = 'none';
@@ -1014,244 +776,217 @@
       loadCandidates();
     }
 
-    // Load active list queue
-    function loadCandidates() {
-      // Check if there is a newly submitted candidate in localStorage from the onboarding form!
-      const localStorageSession = localStorage.getItem('candidate_session');
-      if (localStorageSession) {
-        try {
-          const freshCandidate = JSON.parse(localStorageSession);
-          const alreadyInQueue = queueList.some(c => c.cpf === freshCandidate.cpf);
-          if(!alreadyInQueue) {
-            // Include full address details
-            queueList.unshift({
-              id: 'fresh',
-              name: freshCandidate.name,
-              cpf: freshCandidate.cpf,
-              phone: freshCandidate.phone,
-              cep: freshCandidate.cep || '05386-300',
-              rua: freshCandidate.rua || 'Rua Raposo Tavares',
-              num: freshCandidate.num || '120',
-              comp: freshCandidate.comp || 'Torre B, Apto 104',
-              bairro: freshCandidate.bairro || 'Jd Raposo Tavares',
-              cidade: freshCandidate.cidade || 'São Paulo / SP',
-              loc: freshCandidate.loc || 'Rua Raposo Tavares, Nº 120 (Torre B, Apto 104) - Jd Raposo Tavares, São Paulo / SP',
-              status: freshCandidate.status,
-              timestamp: freshCandidate.timestamp,
-              rating: 'Novo',
-              jobs: [],
-              selfieUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-              cnhUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'
-            });
-          } else {
-            // Update status in case local candidate was approved
-            const matchIndex = queueList.findIndex(c => c.cpf === freshCandidate.cpf);
-            if(matchIndex !== -1 && queueList[matchIndex].status !== freshCandidate.status) {
-              queueList[matchIndex].status = freshCandidate.status;
-            }
-          }
-        } catch(e) {
-          console.error(e);
-        }
-      }
-
-      // Filter list based on tab
-      const filtered = queueList.filter(c => c.status === activeTab);
-      
-      // Update badge count
-      document.getElementById('queue-badge-count').innerText = filtered.length;
-
-      // Populate elements
-      const container = document.getElementById('candidates-list-container');
-      container.innerHTML = '';
-
-      if(filtered.length === 0) {
-        container.innerHTML = `
-          <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 300;">
-            Nenhum prestador nesta lista.
-          </div>
-        `;
-        return;
-      }
-
-      filtered.forEach(c => {
-        let statusBadge = 'badge-accent';
-        let label = 'Triagem';
-        if(c.status === 'Aprovado') { statusBadge = 'badge-brand'; label = 'Ativo'; }
-        else if(c.status === 'Inativo') { statusBadge = 'badge-error'; label = 'Inativo'; }
-        else if(c.status === 'Banido') { statusBadge = 'badge-error'; label = 'Banido'; }
-
-        const isSelected = selectedId === c.id ? 'active' : '';
-
-        const item = document.createElement('div');
-        item.className = `candidate-card ${isSelected}`;
-        item.setAttribute('onclick', `selectItem('${c.id}')`);
-        item.innerHTML = `
-          <div class="card-avatar" style="background-image: url('${c.selfieUrl}');"></div>
-          <div class="card-info" style="flex: 1; text-align: left;">
-            <h4>${c.name}</h4>
-            <p>${c.comp || c.rua} • ${c.timestamp}</p>
-            <span class="badge ${statusBadge}" style="font-size: 0.6rem; margin-top: 4px; padding: 2px 6px;">${label}</span>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    // Select queue item
-    function selectItem(id) {
-      selectedId = id;
-      loadCandidates(); // reload sidebar items active states
-
-      const item = queueList.find(c => c.id === id);
-      if(!item) return;
-
-      document.getElementById('workspace-empty').style.display = 'none';
-
-      if(item.status === 'Pendente') {
-        // Show triaging workspace
-        document.getElementById('workspace-homologated').style.display = 'none';
-        document.getElementById('workspace-triaging').style.display = 'flex';
-
-        document.getElementById('tri-cand-name').innerText = item.name;
-        document.getElementById('tri-cand-info').innerText = `${item.comp || item.rua} | CPF: ${item.cpf}`;
+    // Load active list queue from live database
+    async function loadCandidates() {
+      try {
+        const list = await fetchProvidersByStatus(activeTab);
         
-        // Load Photos
-        document.getElementById('tri-selfie-box').style.backgroundImage = `url('${item.selfieUrl}')`;
-        document.getElementById('tri-cnh-box').style.backgroundImage = `url('${item.cnhUrl}')`;
-        
-        // Set up PDF credentials
-        document.getElementById('tri-pdf-credentials').innerHTML = `NOME: ${item.name.toUpperCase()}<br>CPF: ${item.cpf}`;
+        document.getElementById('queue-badge-count').innerText = list.length;
+        const container = document.getElementById('candidates-list-container');
+        container.innerHTML = '';
 
-        // Reset check indicators
-        document.getElementById('chk-selfie').checked = false;
-        document.getElementById('chk-cpf').checked = false;
-        document.getElementById('btn-approve-triage').setAttribute('disabled', 'true');
-      } else {
-        // Show active or susp/banned persisted workspace details
-        document.getElementById('workspace-triaging').style.display = 'none';
-        document.getElementById('workspace-homologated').style.display = 'flex';
-
-        // Update header details
-        document.getElementById('prof-name').innerText = item.name;
-        document.getElementById('prof-loc').innerText = `Reserva Raposo — ${item.comp || item.rua} | Código #${item.id}`;
-        
-        // Status Badge
-        const badge = document.getElementById('prof-status-badge');
-        badge.className = 'badge';
-        if(item.status === 'Aprovado') {
-          badge.classList.add('badge-success');
-          badge.innerText = 'Ativo & Verificado';
-        } else if(item.status === 'Inativo') {
-          badge.classList.add('badge-error');
-          badge.innerText = 'Inativo';
-        } else if(item.status === 'Banido') {
-          badge.classList.add('badge-error');
-          badge.innerText = 'Perfil Banido';
-        }
-
-        // Left photo avatar
-        document.getElementById('prof-avatar').style.backgroundImage = `url('${item.selfieUrl}')`;
-
-        // Rating
-        if(item.rating === 'Novo') {
-          document.getElementById('prof-rating').innerHTML = `Novo Parceiro <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">Aguardando 1ª diária</span>`;
-        } else {
-          document.getElementById('prof-rating').innerHTML = `
-            ${item.rating} 
-            <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted); display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;">
-              <svg viewBox="0 0 24 24" fill="currentColor" style="width: 13px; height: 13px; color: var(--color-accent);"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> 
-              (${item.jobs.length} Avaliações)
-            </span>`;
-        }
-
-        // Persisted parameters
-        document.getElementById('prof-cpf').innerText = item.cpf;
-        document.getElementById('prof-phone').innerText = item.phone;
-        document.getElementById('prof-address').innerText = item.loc;
-
-        // Render completed jobs
-        const jobsContainer = document.getElementById('prof-jobs-list');
-        jobsContainer.innerHTML = '';
-
-        if(item.jobs.length === 0) {
-          jobsContainer.innerHTML = `
-            <div style="flex: 1; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.08); border-radius: 10px; height: 160px; color: var(--text-muted); font-size: 0.75rem; font-weight: 300;">
-              Nenhum serviço realizado ainda neste condomínio.
+        if(list.length === 0) {
+          container.innerHTML = `
+            <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 300;">
+              Nenhum prestador nesta lista.
             </div>
           `;
-        } else {
-          item.jobs.forEach(job => {
-            const el = document.createElement('div');
-            el.style.backgroundColor = 'rgba(255,255,255,0.01)';
-            el.style.border = 'var(--border-thin)';
-            el.style.padding = '12px';
-            el.style.borderRadius = '8px';
-            el.style.textAlign = 'left';
-            el.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span style="font-size: 0.72rem; font-weight: 600; color: #fff;">${job.type}</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">${job.date}</span>
-              </div>
-              <p style="font-size: 0.68rem; color: var(--text-secondary); line-height: 1.35;">"${job.comment}"</p>
-              <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 0.68rem; color: var(--color-accent-light); font-weight: 600;">
-                Nota do Morador: ${job.score} 
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 11px; height: 11px; color: var(--color-accent); display: inline-block; vertical-align: middle;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              </div>
-            `;
-            jobsContainer.appendChild(el);
-          });
+          return;
         }
 
-        // Reason banner if Inactive or Banned
-        if(item.status === 'Inativo' || item.status === 'Banido') {
-          const reasonAlert = document.createElement('div');
-          reasonAlert.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
-          reasonAlert.style.border = '1px solid rgba(239, 68, 68, 0.2)';
-          reasonAlert.style.borderRadius = '8px';
-          reasonAlert.style.padding = '10px 12px';
-          reasonAlert.style.fontSize = '0.72rem';
-          reasonAlert.style.color = 'var(--color-error)';
-          reasonAlert.style.textAlign = 'left';
-          reasonAlert.style.marginBottom = '14px';
-          reasonAlert.style.display = 'flex';
-          reasonAlert.style.alignItems = 'flex-start';
-          reasonAlert.style.gap = '6px';
-          reasonAlert.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; color: var(--color-error); shrink: 0; margin-top: 1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <span><strong>Nota Administrativa:</strong> ${item.reason}</span>
-          `;
-          jobsContainer.insertBefore(reasonAlert, jobsContainer.firstChild);
-        }
+        list.forEach(c => {
+          let statusBadge = 'badge-accent';
+          let label = 'Triagem';
+          if(c.status === 'Aprovado') { statusBadge = 'badge-brand'; label = 'Ativo'; }
+          else if(c.status === 'Inativo') { statusBadge = 'badge-error'; label = 'Inativo'; }
+          else if(c.status === 'Banido') { statusBadge = 'badge-error'; label = 'Banido'; }
 
-        // Render profile control buttons
-        const actionBtnContainer = document.getElementById('profile-action-buttons');
-        actionBtnContainer.innerHTML = '';
+          const isSelected = selectedId === c.id ? 'active' : '';
+          const name = c.profiles ? c.profiles.name : "Candidato";
+          const detail = c.comp || c.rua;
+          const timestamp = new Date(c.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-        if(item.status === 'Aprovado') {
-          actionBtnContainer.innerHTML = `
-            <button class="btn btn-danger" onclick="changeProfileStatus('${item.id}', 'Inativo')" style="flex: 1; padding: 12px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Suspender/Inativar
-            </button>
-            <button class="btn btn-danger" onclick="changeProfileStatus('${item.id}', 'Banido')" style="flex: 1; padding: 12px; font-size: 0.85rem; background-color: rgba(239,68,68,0.18); border-color: rgba(239,68,68,0.4); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-              BANIR PROFISSIONAL
-            </button>
+          const selfieUrl = c.selfie_path 
+            ? supabase.storage.from("selfies-temp").getPublicUrl(c.selfie_path).data.publicUrl
+            : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200";
+
+          const item = document.createElement('div');
+          item.className = `candidate-card ${isSelected}`;
+          item.onclick = () => selectItem(c.id);
+          item.innerHTML = `
+            <div class="card-avatar" style="background-image: url('${selfieUrl}');"></div>
+            <div class="card-info" style="flex: 1; text-align: left;">
+              <h4>${name}</h4>
+              <p>${detail} • ${timestamp}</p>
+              <span class="badge ${statusBadge}" style="font-size: 0.6rem; margin-top: 4px; padding: 2px 6px;">${label}</span>
+            </div>
           `;
-        } else {
-          // Inativo or Banido
-          actionBtnContainer.innerHTML = `
-            <button class="btn btn-brand" onclick="changeProfileStatus('${item.id}', 'Aprovado')" style="flex: 1; padding: 12px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              REATIVAR PROFISSIONAL
-            </button>
-          `;
-        }
+          container.appendChild(item);
+        });
+
+      } catch (err) {
+        console.error("Erro ao listar candidatos do banco:", err);
       }
     }
 
-    // Toggle Triaging approval action active status based on checkboxes
+    // Select queue item and render workspaces
+    async function selectItem(id) {
+      selectedId = id;
+      
+      const container = document.getElementById('candidates-list-container');
+      if (container) {
+        Array.from(container.children).forEach(el => el.classList.remove('active'));
+      }
+
+      try {
+        const { data: item, error } = await supabase
+          .from("service_providers")
+          .select(`
+            id,
+            status,
+            cep,
+            rua,
+            num,
+            comp,
+            bairro,
+            cidade,
+            loc,
+            selfie_path,
+            document_path,
+            profiles (
+              name,
+              cpf,
+              phone
+            )
+          `)
+          .eq("id", id)
+          .single();
+
+        if (error) throw error;
+        if (!item) return;
+
+        document.getElementById('workspace-empty').style.display = 'none';
+
+        const name = item.profiles ? item.profiles.name : "";
+        const cpf = item.profiles ? item.profiles.cpf : "";
+        const phone = item.profiles ? item.profiles.phone : "";
+
+        if(item.status === 'Pendente') {
+          document.getElementById('workspace-homologated').style.display = 'none';
+          document.getElementById('workspace-triaging').style.display = 'flex';
+
+          document.getElementById('tri-cand-name').innerText = name;
+          document.getElementById('tri-cand-info').innerText = `${item.comp || item.rua} | CPF: ${cpf}`;
+          
+          const selfieUrl = item.selfie_path 
+            ? supabase.storage.from("selfies-temp").getPublicUrl(item.selfie_path).data.publicUrl
+            : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200";
+
+          const docUrl = item.document_path
+            ? supabase.storage.from("criminologia-temp").getPublicUrl(item.document_path).data.publicUrl
+            : "";
+
+          document.getElementById('tri-selfie-box').style.backgroundImage = `url('${selfieUrl}')`;
+          
+          if (item.document_path && item.document_path.toLowerCase().endsWith(".pdf")) {
+            document.getElementById('tri-cnh-box').style.backgroundImage = 'none';
+            document.getElementById('tri-cnh-box').innerHTML = `
+              <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #18181b; border-radius: 12px; border: 1px solid #27272a; padding: 12px; text-align: center;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" style="width: 36px; height: 36px;"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 9h1m-1 4h3m-3 4h3"/></svg>
+                <span style="font-size: 0.75rem; font-weight: 600; color: #fff;">Atestado Criminal PDF</span>
+                <a href="${docUrl}" target="_blank" style="font-size: 0.65rem; color: #10b981; text-decoration: underline;">Visualizar em Nova Aba</a>
+              </div>
+            `;
+          } else {
+            document.getElementById('tri-cnh-box').innerHTML = "";
+            document.getElementById('tri-cnh-box').style.backgroundImage = `url('${docUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200'}')`;
+          }
+          
+          document.getElementById('tri-pdf-credentials').innerHTML = `CERTIDÃO DE ANTECEDENTES CRIMINAIS<br>NOME: ${name.toUpperCase()}<br>CPF: ${cpf}<br><span style="color:#10b981; font-weight:600;">SITUAÇÃO: NENHUM REGISTRO ENCONTRADO</span>`;
+
+          document.getElementById('chk-selfie').checked = false;
+          document.getElementById('chk-cpf').checked = false;
+          document.getElementById('btn-approve-triage').setAttribute('disabled', 'true');
+        } else {
+          document.getElementById('workspace-triaging').style.display = 'none';
+          document.getElementById('workspace-homologated').style.display = 'flex';
+
+          document.getElementById('prof-name').innerText = name;
+          document.getElementById('prof-loc').innerText = `Reserva Raposo — ${item.comp || item.rua} | Código #${item.id.substring(0, 8)}`;
+          
+          const selfieUrl = item.selfie_path 
+            ? supabase.storage.from("selfies-temp").getPublicUrl(item.selfie_path).data.publicUrl
+            : "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200";
+
+          document.getElementById('prof-avatar').style.backgroundImage = `url('${selfieUrl}')`;
+          document.getElementById('prof-cpf').innerText = cpf;
+          document.getElementById('prof-phone').innerText = phone;
+          document.getElementById('prof-address').innerText = item.loc;
+
+          const badge = document.getElementById('prof-status-badge');
+          badge.className = 'badge';
+          if(item.status === 'Aprovado') {
+            badge.classList.add('badge-success');
+            badge.innerText = 'Ativo & Verificado';
+          } else if(item.status === 'Inativo') {
+            badge.classList.add('badge-error');
+            badge.innerText = 'Inativo';
+          } else if(item.status === 'Banido') {
+            badge.classList.add('badge-error');
+            badge.innerText = 'Perfil Banido';
+          }
+
+          document.getElementById('prof-rating').innerHTML = `Novo Parceiro <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">Aguardando 1ª diária</span>`;
+
+          const jobsContainer = document.getElementById('prof-jobs-list');
+          jobsContainer.innerHTML = '';
+
+          if (item.status === 'Aprovado') {
+            const clipboardCard = document.createElement("clipboard-card");
+            clipboardCard.setAttribute("name", name);
+            clipboardCard.setAttribute("phone", phone);
+            clipboardCard.setAttribute("cpf", cpf);
+            jobsContainer.appendChild(clipboardCard);
+          } else {
+            jobsContainer.innerHTML = `
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.08); border-radius: 10px; height: 160px; color: var(--text-muted); font-size: 0.75rem; font-weight: 300;">
+                Selecione uma ação administrativa abaixo.
+              </div>
+            `;
+          }
+
+          const actionBtnContainer = document.getElementById('profile-action-buttons');
+          actionBtnContainer.innerHTML = '';
+
+          if(item.status === 'Aprovado') {
+            actionBtnContainer.innerHTML = `
+              <button class="btn btn-danger" id="btn-suspend" style="flex: 1; padding: 12px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Suspender/Inativar
+              </button>
+              <button class="btn btn-danger" id="btn-ban" style="flex: 1; padding: 12px; font-size: 0.85rem; background-color: rgba(239,68,68,0.18); border-color: rgba(239,68,68,0.4); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                BANIR PROFISSIONAL
+              </button>
+            `;
+            document.getElementById("btn-suspend").onclick = () => changeProfileStatus(id, "Inativo");
+            document.getElementById("btn-ban").onclick = () => changeProfileStatus(id, "Banido");
+          } else {
+            actionBtnContainer.innerHTML = `
+              <button class="btn btn-brand" id="btn-reactivate" style="flex: 1; padding: 12px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                REATIVAR PROFISSIONAL
+              </button>
+            `;
+            document.getElementById("btn-reactivate").onclick = () => changeProfileStatus(id, "Aprovado");
+          }
+        }
+
+      } catch (err) {
+        console.error("Erro ao carregar detalhes do prestador:", err);
+      }
+    }
+
     function toggleTriagingCheckboxes() {
       const chk1 = document.getElementById('chk-selfie').checked;
       const chk2 = document.getElementById('chk-cpf').checked;
@@ -1264,102 +999,90 @@
       }
     }
 
-    // Administrative state modifiers (Inactivate, Ban, Reactivate)
-    function changeProfileStatus(id, newStatus) {
-      const candidate = queueList.find(c => c.id === id);
-      if(candidate) {
-        candidate.status = newStatus;
-        if(newStatus === 'Inativo') {
-          candidate.reason = 'Inativado por decisão administrativa operacional.';
-        } else if(newStatus === 'Banido') {
-          candidate.reason = 'Bloqueio preventivo administrativo permanente por quebra de termos securitários.';
-        }
-
-        // Sync local storage if it was the live signed candidate
-        const localStorageSession = localStorage.getItem('candidate_session');
-        if (localStorageSession) {
-          try {
-            const freshCand = JSON.parse(localStorageSession);
-            if(freshCand.cpf === candidate.cpf) {
-              freshCand.status = newStatus;
-              localStorage.setItem('candidate_session', JSON.stringify(freshCand));
-            }
-          } catch(e){}
-        }
-
+    async function changeProfileStatus(id, newStatus) {
+      try {
+        await updateProviderStatus(id, newStatus);
         switchTab(newStatus);
-        selectItem(id);
+      } catch (err) {
+        alert(`Erro ao alterar status do prestador: ${err.message}`);
       }
     }
 
-    // Triaging Modal handlers
-    function approveCandidate() {
-      const candidate = queueList.find(c => c.id === selectedId);
-      if(!candidate) return;
+    async function approveCandidate() {
+      try {
+        const { data: item, error } = await supabase
+          .from("service_providers")
+          .select(`
+            id,
+            profiles ( name )
+          `)
+          .eq("id", selectedId)
+          .single();
 
-      document.getElementById('confirmCandName').innerText = candidate.name;
-      document.getElementById('confirmOverlay').style.display = 'flex';
+        if (error) throw error;
+        if (!item) return;
+
+        document.getElementById('confirmCandName').innerText = item.profiles ? item.profiles.name : "";
+        document.getElementById('confirmOverlay').style.display = 'flex';
+      } catch (err) {
+        alert(`Erro ao carregar confirmação: ${err.message}`);
+      }
     }
 
     function closeConfirmModal() {
       document.getElementById('confirmOverlay').style.display = 'none';
     }
 
-    // Trigger Digital CSS Shredding
-    function executeApproveCandidate() {
+    async function executeApproveCandidate() {
       closeConfirmModal();
       
       const shredder = document.getElementById('shredderOverlay');
       shredder.style.display = 'flex';
 
-      // Physical permanent document shredding timeline (2.5 seconds)
-      setTimeout(() => {
-        shredder.style.display = 'none';
-        
-        const candidate = queueList.find(c => c.id === selectedId);
-        if(candidate) {
-          candidate.status = 'Aprovado';
-          candidate.timestamp = 'Agora';
+      try {
+        const { data: item, error } = await supabase
+          .from("service_providers")
+          .select("selfie_path, document_path")
+          .eq("id", selectedId)
+          .single();
 
-          // Synchronize status back in localStorage
-          const localStorageSession = localStorage.getItem('candidate_session');
-          if (localStorageSession) {
-            try {
-              const freshCand = JSON.parse(localStorageSession);
-              if(freshCand.cpf === candidate.cpf) {
-                freshCand.status = 'Aprovado';
-                localStorage.setItem('candidate_session', JSON.stringify(freshCand));
-              }
-            } catch(e){}
-          }
+        if (error) throw error;
 
-          // Shred documents and render persisted details automatically!
+        // Call remote secure purge Deno function
+        await approveProvider(selectedId, item.selfie_path, item.document_path);
+
+        setTimeout(() => {
+          shredder.style.display = 'none';
           switchTab('Aprovado');
-          selectItem(candidate.id);
-        }
+          selectItem(selectedId);
+        }, 2500);
 
-      }, 2500);
-    }
-
-    function rejectCandidate() {
-      const candidate = queueList.find(c => c.id === selectedId);
-      if(candidate) {
-        candidate.status = 'Recusado';
-        
-        const localStorageSession = localStorage.getItem('candidate_session');
-        if (localStorageSession) {
-          try {
-            const freshCand = JSON.parse(localStorageSession);
-            if(freshCand.cpf === candidate.cpf) {
-              freshCand.status = 'Recusado';
-              localStorage.setItem('candidate_session', JSON.stringify(freshCand));
-            }
-          } catch(e){}
-        }
-
-        switchTab('Pendente');
+      } catch (err) {
+        shredder.style.display = 'none';
+        console.error("Erro ao processar triagem e expurgo seguro:", err);
+        alert(`Erro ao homologar candidato: ${err.message}`);
       }
     }
+
+    async function rejectCandidate() {
+      try {
+        await updateProviderStatus(selectedId, "Rejeitado");
+        switchTab('Pendente');
+      } catch (err) {
+        alert(`Erro ao rejeitar candidato: ${err.message}`);
+      }
+    }
+
+    // Expose functions globally for backoffice actions
+    window.loginAdmin = loginAdmin;
+    window.switchTab = switchTab;
+    window.selectItem = selectItem;
+    window.toggleTriagingCheckboxes = toggleTriagingCheckboxes;
+    window.changeProfileStatus = changeProfileStatus;
+    window.approveCandidate = approveCandidate;
+    window.closeConfirmModal = closeConfirmModal;
+    window.executeApproveCandidate = executeApproveCandidate;
+    window.rejectCandidate = rejectCandidate;
   </script>
 </body>
 </html>

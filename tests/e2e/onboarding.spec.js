@@ -22,6 +22,16 @@ test.describe("Jornada de Onboarding do Prestador - E2E", () => {
     await expect(cpfInput).toBeVisible();
   });
 
+  test("Deve garantir conformidade LGPD e ausência de termos de trituração/exclusão", async ({ page }) => {
+    await page.click("text=COMEÇAR A FATURAR AGORA", { force: true });
+    
+    const bodyText = await page.locator("body").innerText();
+    // Garante que termos inadequados ou assustadores foram removidos
+    expect(bodyText).not.toContain("trituração");
+    expect(bodyText).not.toContain("exclusão");
+    expect(bodyText).not.toContain("triturado");
+  });
+
 });
 
 test.describe("Painel de Triagem do Gestor - E2E", () => {
