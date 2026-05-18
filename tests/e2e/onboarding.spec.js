@@ -5,6 +5,16 @@ test.describe("Jornada de Onboarding do Prestador - E2E", () => {
   test.beforeEach(async ({ page }) => {
     // Carrega a página de onboarding
     await page.goto("/prestador-onboarding.html");
+    
+    // Aceita os termos de privacidade para fechar o cookie banner se estiver visível
+    const acceptBtn = page.locator("text=Aceitar Termos");
+    try {
+      if (await acceptBtn.isVisible()) {
+        await acceptBtn.click();
+      }
+    } catch (e) {
+      // Ignore if not present
+    }
   });
 
   test("Deve carregar a tela de onboarding com sucesso", async ({ page }) => {
