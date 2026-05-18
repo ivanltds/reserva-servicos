@@ -3,8 +3,8 @@ import { test, expect } from "@playwright/test";
 test.describe("Jornada de Onboarding do Prestador - E2E", () => {
 
   test.beforeEach(async ({ page }) => {
-    // Carrega a página de onboarding
-    await page.goto("/prestador-onboarding.html");
+    // Carrega a página de onboarding (Landing Page principal)
+    await page.goto("/index.html");
     
     // Aceita os termos de privacidade para fechar o cookie banner se estiver visível
     const acceptBtn = page.locator("text=Aceitar Termos");

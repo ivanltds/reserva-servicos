@@ -52,11 +52,15 @@ npm run dev
 
 Com o servidor rodando, abra o navegador e acesse as rotas do projeto:
 
-* 👤 **Jornada de Onboarding do Prestador**:
-  - URL: [http://localhost:3000/prestador-onboarding.html](http://localhost:3000/prestador-onboarding.html)
-  - *Fluxo*: Permite que novos prestadores enviem seus dados cadastrais, tirem selfie de identificação física e subam o atestado de antecedentes criminais.
+* 👤 **Landing Page & Jornada de Onboarding do Prestador**:
+  - URL: [http://localhost:3000/](http://localhost:3000/) ou [http://localhost:3000/index.html](http://localhost:3000/index.html)
+  - *Fluxo*: Apresenta a calculadora de ganhos interativa (Landing Page) e conduz o prestador pela jornada passo a passo de cadastro e envio de documentos.
 
-* 🔑 **Painel do Gestor (Workstation de Homologação)**:
+* 🔑 **Página de Login Unificado**:
+  - URL: [http://localhost:3000/login.html](http://localhost:3000/login.html)
+  - *Fluxo*: Login unificado de acesso. Redireciona automaticamente o Gestor para o Painel de Triagem ou o Prestador para a Landing/Acompanhamento dependendo de seu papel (Role) no banco.
+
+* 🖥️ **Painel do Gestor (Workstation de Homologação)**:
   - URL: [http://localhost:3000/gestor-painel.html](http://localhost:3000/gestor-painel.html)
   - *Acesso Simples de Desenvolvimento*: O painel está preparado para criar a gestora **Mariana Alves** automaticamente no primeiro clique em "Acessar Painel".
   - *E-mail administrativo sugerido*: `mariana.alves@reservaservicos.com.br`

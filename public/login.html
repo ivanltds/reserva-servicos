@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Reserva Serviços</title>
+  
+  <!-- Typography & Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Variables & Base Styles -->
+  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    body {
+      background-color: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glows */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+      top: -100px;
+      left: -100px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.06) 0%, transparent 70%);
+      bottom: -100px;
+      right: -100px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(15, 19, 31, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      z-index: 10;
+      position: relative;
+    }
+
+    .brand-header {
+      font-family: 'Outfit';
+      font-weight: 700;
+      font-size: 1.45rem;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-accent {
+      color: var(--color-accent-light);
+      font-weight: 800;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      font-weight: 300;
+    }
+
+    .input-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      background-color: var(--bg-tertiary);
+      border: var(--border-thin);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 0.88rem;
+      transition: var(--transition-smooth);
+      font-family: inherit;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--color-brand);
+      box-shadow: 0 0 10px rgba(5, 150, 105, 0.15);
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Outfit';
+      transition: var(--transition-smooth);
+      background: linear-gradient(135deg, var(--color-brand) 0%, #10b981 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
+      margin-top: 10px;
+      position: relative;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .error-banner {
+      display: none;
+      background-color: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #ef4444;
+      font-size: 0.74rem;
+      margin-bottom: 20px;
+      text-align: left;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .register-link {
+      display: inline-block;
+      margin-top: 24px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+
+    .register-link strong {
+      color: var(--color-accent-light);
+    }
+
+    .register-link:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="brand-header">
+      <span class="brand-accent">RESERVA</span> SERVIÇOS
+    </div>
+    <div class="subtitle">Faça login para gerenciar ou acompanhar sua conta</div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="error-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; shrink: 0; margin-top: 1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      <span id="error-text">Credenciais inválidas. Por favor, verifique seus dados.</span>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form">
+      <div class="input-group">
+        <label for="login-email">Endereço de E-mail</label>
+        <input type="email" id="login-email" required placeholder="seuemail@exemplo.com">
+      </div>
+
+      <div class="input-group" style="margin-bottom: 24px;">
+        <label for="login-password">Senha de Acesso</label>
+        <input type="password" id="login-password" required placeholder="Sua senha secreta">
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-submit">
+        Entrar na Conta
+      </button>
+    </form>
+
+    <a href="index.html" class="register-link">
+      Não tem uma conta? <strong>Cadastre-se agora</strong>
+    </a>
+  </div>
+
+  <script type="module">
+    import { supabase, signIn } from "./js/services/supabase.js";
+
+    const form = document.getElementById("login-form");
+    const emailInput = document.getElementById("login-email");
+    const passwordInput = document.getElementById("login-password");
+    const btnSubmit = document.getElementById("btn-submit");
+    const errorBanner = document.getElementById("error-banner");
+    const errorText = document.getElementById("error-text");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      // Reset state
+      errorBanner.style.display = "none";
+      btnSubmit.setAttribute("disabled", "true");
+      btnSubmit.innerText = "Autenticando...";
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      try {
+        // Authenticate
+        const user = await signIn(email, password);
+        
+        // Fetch role from profiles
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError || !profile) {
+          throw new Error("Não foi possível carregar seu perfil de acesso.");
+        }
+
+        // Role-based redirection
+        if (profile.role === "operator" || profile.role === "master") {
+          window.location.href = "gestor-painel.html";
+        } else {
+          // If candidate, check their onboarding state
+          const { data: provider } = await supabase
+            .from("service_providers")
+            .select("status")
+            .eq("id", user.id)
+            .single();
+
+          if (provider) {
+            // Keep candidate in local storage state
+            const payload = {
+              id: user.id,
+              name: user.user_metadata?.name || "Prestador",
+              status: provider.status,
+              timestamp: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+            };
+            localStorage.setItem('candidate_session', JSON.stringify(payload));
+          }
+          
+          // Redirect candidate to root where index.html's javascript will check their localStorage session
+          window.location.href = "index.html";
+        }
+
+      } catch (err) {
+        console.error("Erro na autenticação:", err);
+        errorText.innerText = err.message || "E-mail ou senha incorretos.";
+        errorBanner.style.display = "flex";
+        btnSubmit.removeAttribute("disabled");
+        btnSubmit.innerText = "Entrar na Conta";
+      }
+    });
+  </script>
+</body>
+</html>
