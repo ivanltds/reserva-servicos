@@ -11,6 +11,8 @@ test.describe("Jornada de Onboarding do Prestador - E2E", () => {
     try {
       if (await acceptBtn.isVisible()) {
         await acceptBtn.click();
+        // Aguarda o banner de cookies sumir completamente da tela (animação de fadeOut)
+        await expect(page.locator("#cookiesBanner")).toBeHidden();
       }
     } catch (e) {
       // Ignore if not present
