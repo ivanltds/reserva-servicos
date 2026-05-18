@@ -52,6 +52,17 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- 4.5 Função de Segurança para Evitar Recursão RLS (Security Definer)
+create or replace function public.is_operator(user_id uuid)
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.profiles
+    where id = user_id and role in ('operator', 'master')
+  );
+end;
+$$ language plpgsql security definer;
+
 -- 5. Habilitar Row Level Security (RLS) para Segurança dos Dados
 alter table public.profiles enable row level security;
 alter table public.service_providers enable row level security;
@@ -62,10 +73,7 @@ create policy "Permitir leitura do próprio perfil" on public.profiles
 
 create policy "Permitir operadores lerem todos os perfis" on public.profiles
   for select using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('operator', 'master')
-    )
+    public.is_operator(auth.uid())
   );
 
 create policy "Permitir inserção do próprio perfil" on public.profiles
@@ -80,10 +88,7 @@ create policy "Permitir leitura do próprio cadastro de prestador" on public.ser
 
 create policy "Permitir operadores lerem todos os cadastros de prestadores" on public.service_providers
   for select using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('operator', 'master')
-    )
+    public.is_operator(auth.uid())
   );
 
 create policy "Permitir inserção do próprio cadastro de prestador" on public.service_providers
@@ -94,10 +99,7 @@ create policy "Permitir atualização do próprio cadastro de prestador" on publ
 
 create policy "Permitir operadores atualizarem qualquer cadastro de prestador" on public.service_providers
   for update using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('operator', 'master')
-    )
+    public.is_operator(auth.uid())
   );
 
 -- 8. Setup dos Buckets Temporários de Armazenamento Seguro
@@ -118,18 +120,12 @@ create policy "Permitir leitura de documentos apenas para operadores" on storage
   for select to authenticated
   using (
     bucket_id in ('selfies-temp', 'criminologia-temp') and
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('operator', 'master')
-    )
+    public.is_operator(auth.uid())
   );
 
 create policy "Permitir exclusão de documentos apenas para operadores" on storage.objects
   for delete to authenticated
   using (
     bucket_id in ('selfies-temp', 'criminologia-temp') and
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('operator', 'master')
-    )
+    public.is_operator(auth.uid())
   );
