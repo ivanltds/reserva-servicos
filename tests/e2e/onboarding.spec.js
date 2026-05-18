@@ -4,7 +4,7 @@ test.describe("Jornada de Onboarding do Prestador - E2E", () => {
 
   test.beforeEach(async ({ page }) => {
     // Carrega a página de onboarding (Landing Page principal)
-    await page.goto("/index.html");
+    await page.goto("/");
     
     // Aceita os termos de privacidade para fechar o cookie banner se estiver visível
     const acceptBtn = page.locator("text=Aceitar Termos");
@@ -48,11 +48,15 @@ test.describe("Jornada de Onboarding do Prestador - E2E", () => {
 
 test.describe("Painel de Triagem do Gestor - E2E", () => {
 
-  test("Deve carregar o Painel de Triagem Desktop", async ({ page }) => {
-    await page.goto("/gestor-painel.html");
-    // Verifica título ou elemento do cabeçalho do gestor
-    const dashboardTitle = page.locator("h1, h2");
-    await expect(dashboardTitle.first()).toBeVisible();
+  test("Deve proteger o painel e redirecionar usuário não autenticado para o login", async ({ page }) => {
+    await page.goto("/gestor/painel");
+    // Aguarda o redirecionamento automático de segurança para a tela de login
+    await page.waitForURL("**/login");
+    // Confirma que os inputs do formulário de login estão visíveis e funcionais
+    const emailInput = page.locator("#login-email");
+    await expect(emailInput).toBeVisible();
+    const passwordInput = page.locator("#login-password");
+    await expect(passwordInput).toBeVisible();
   });
 
 });

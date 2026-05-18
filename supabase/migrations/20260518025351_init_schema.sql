@@ -14,7 +14,7 @@ create table public.profiles (
 -- 2. Criação da Tabela public.service_providers
 create table public.service_providers (
   id uuid references public.profiles on delete cascade primary key,
-  status text default 'Pendente' check (status in ('Pendente', 'Aprovado', 'Rejeitado')),
+  status text default 'Pendente' check (status in ('Pendente', 'Aprovado', 'Rejeitado', 'Inativo', 'Banido')),
   cep text not null,
   rua text not null,
   num text not null,
@@ -23,6 +23,7 @@ create table public.service_providers (
   cidade text not null,
   loc text not null,
   selfie_path text,
+  rg_path text,
   document_path text,
   is_verified boolean default false,
   verified_at timestamp with time zone,
@@ -58,10 +59,13 @@ create trigger on_auth_user_created
 create or replace function public.is_operator(user_id uuid)
 returns boolean as $$
 begin
-  return exists (
-    select 1 from public.profiles
-    where id = user_id and role in ('operator', 'master')
-  );
+  -- Se for uma chamada do sistema (service_role), retorna verdadeiro
+  if auth.role() = 'service_role' then
+    return true;
+  end if;
+
+  -- Verifica a claim de role nos metadados do JWT do usuário para evitar recursão de RLS
+  return coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') in ('operator', 'master');
 end;
 $$ language plpgsql security definer;
 
@@ -107,27 +111,38 @@ create policy "Permitir operadores atualizarem qualquer cadastro de prestador" o
 -- 8. Setup dos Buckets Temporários de Armazenamento Seguro
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values 
-  ('selfies-temp', 'selfies-temp', false, 5242880, '{image/jpeg,image/png,image/webp}'),
+  ('selfies-temp', 'selfies-temp', true, 5242880, '{image/jpeg,image/png,image/webp}'),
   ('criminologia-temp', 'criminologia-temp', false, 10485760, '{image/jpeg,image/png,image/webp,application/pdf}')
 on conflict (id) do nothing;
 
 -- 9. Políticas RLS no Storage Objects para Proteção à LGPD
-create policy "Permitir upload para candidatos autenticados" on storage.objects
-  for insert to authenticated
+create policy "Permitir upload para todos" on storage.objects
+  for insert
   with check (
     bucket_id in ('selfies-temp', 'criminologia-temp')
   );
 
-create policy "Permitir leitura de documentos apenas para operadores" on storage.objects
+create policy "Permitir leitura de documentos para dono ou operadores" on storage.objects
   for select to authenticated
   using (
     bucket_id in ('selfies-temp', 'criminologia-temp') and
-    public.is_operator(auth.uid())
+    (owner = auth.uid() or public.is_operator(auth.uid()))
   );
 
-create policy "Permitir exclusão de documentos apenas para operadores" on storage.objects
+create policy "Permitir update de documentos para dono ou operadores" on storage.objects
+  for update to authenticated
+  using (
+    bucket_id in ('selfies-temp', 'criminologia-temp') and
+    (owner = auth.uid() or public.is_operator(auth.uid()))
+  )
+  with check (
+    bucket_id in ('selfies-temp', 'criminologia-temp') and
+    (owner = auth.uid() or public.is_operator(auth.uid()))
+  );
+
+create policy "Permitir exclusão de documentos para dono ou operadores" on storage.objects
   for delete to authenticated
   using (
     bucket_id in ('selfies-temp', 'criminologia-temp') and
-    public.is_operator(auth.uid())
+    (owner = auth.uid() or public.is_operator(auth.uid()))
   );

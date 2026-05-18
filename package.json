@@ -5,8 +5,9 @@
   "main": "public/index.html",
   "type": "module",
   "scripts": {
-    "dev": "npx local-web-server --directory public --port 3000",
-    "dev:server": "npx local-web-server --directory public --port 3000",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:e2e": "playwright test"
@@ -27,6 +28,9 @@
     "local-web-server": "^5.3.1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.4"
+    "@supabase/supabase-js": "^2.43.4",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   }
 }

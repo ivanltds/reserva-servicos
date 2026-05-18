@@ -32,3 +32,11 @@ test-results/
 *.njsproj
 *.sln
 *.sw?
+
+# Next.js build output
+.next/
+out/
+
+# Jest coverage output
+coverage/
+

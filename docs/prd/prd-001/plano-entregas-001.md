@@ -45,7 +45,14 @@ gantt
         *   Bloqueio eletrônico para impedir que um morador contrate o mesmo prestador mais de 2 vezes por semana.
         *   Bloqueio de horários ruidosos de reparo fora do intervalo 9h-17h (dias úteis) e 9h-12h (sábados).
     4.  **Botão "Copiar Dados para Portaria" (UX Clipboard):** Recurso que copia os dados de acesso do profissional formatados com um clique para colar no WhatsApp ou app da portaria da torre.
-*   **Entrega de Valor:** Experiência de match fluida, segura, em conformidade com o regimento de silêncio e sem atrito na entrada do megacomplexo.
+    5.  **Mitigações de Infraestrutura & Fallbacks Resilientes (Melhorias de Confiança do Milestone 1):**
+        *   **PgBouncer / Pool de Conexões (Risco A):** Otimizar e configurar as conexões assíncronas do Next.js e Supabase Client para operarem sob o pooler de transações (PgBouncer), evitando estouro de conexões simultâneas do Postgres.
+        *   **Cron Job de Expurgo Seguro (Risco B):** Desenvolver uma rotina periódica automatizada (Cron Job / Database Webhook) para varrer e remover fisicamente qualquer documento remanescente no storage temporário de candidatos já homologados.
+        *   **Resiliência no Preenchimento de CEP (Risco C):** Implementar fallback de timeout de 3 segundos para a busca dinâmico de CEP (ViaCEP) com liberação automática de digitação manual de endereço para evitar bloqueios de cadastro.
+    6.  **Recuperação e Engajamento Imediato de Prestadores (Insights Prioritários):**
+        *   **WhatsApp Onboarding Recovery (Insight 1):** Rastrear cadastros incompletos que travaram no upload de documentos para ações proativas de suporte administrativo no WhatsApp.
+        *   **Loop de Confiança Instantâneo (Insight 2):** Automação de notificação imediata (WhatsApp/e-mail transacional) enviada ao prestador no milissegundo de sua aprovação de triagem, impulsionando retenção tátil.
+*   **Entrega de Valor:** Experiência de match fluida, segura, com engajamento acelerado de prestadores aprovados e recuperação de cadastros, sob total compliance e blindagem técnica operacional.
 
 ---
 

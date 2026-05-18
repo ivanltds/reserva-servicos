@@ -1,0 +1,1 @@
+SELECT id, status FROM public.service_providers WHERE id = '5768f41e-f241-4976-a9c1-7a62ee8f48ba';
