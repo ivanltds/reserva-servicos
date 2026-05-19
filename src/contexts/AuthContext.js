@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase, withTimeout } from "../services/supabase";
 
 const AuthContext = createContext({
@@ -14,12 +15,11 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Carrega os dados adicionais de perfil do banco
   async function loadProfile(userId) {
     try {
       const fetchPromise = (async () => {
-        // maybeSingle() retorna null (sem erro 406) quando nenhum perfil é encontrado
         const { data, error } = await supabase
           .from("profiles")
           .select("name, role, cpf, phone")
@@ -30,6 +30,22 @@ export function AuthProvider({ children }) {
           console.warn("Erro ao buscar perfil:", error.message);
           throw error;
         }
+
+        if (data) {
+          data.is_hybrid = false;
+          const [resResident, resProvider] = await Promise.all([
+            supabase.from("residents").select("id").eq("id", userId).maybeSingle(),
+            supabase.from("service_providers").select("id").eq("id", userId).maybeSingle(),
+          ]);
+
+          data.is_client = !!resResident.data;
+          data.is_provider = !!resProvider.data;
+          
+          if (data.is_client && data.is_provider) {
+            data.is_hybrid = true;
+          }
+        }
+
         return data;
       })();
 
@@ -44,25 +60,22 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    // 1. Verificar a sessão inicial ativa
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
         const profile = await loadProfile(session.user.id);
-        // Sessão órfã: JWT válido mas sem perfil no banco (ex: banco foi resetado)
-        // Faz signOut automático para limpar o estado corrompido
         if (!profile) {
           console.warn("Sessão órfã detectada (sem perfil no banco). Fazendo signOut automático.");
           await supabase.auth.signOut();
           localStorage.removeItem("candidate_session");
+          localStorage.removeItem("resident_session");
         }
       }
       setLoading(false);
     });
 
-    // 2. Escutar mudanças de estado de autenticação (Sign In, Sign Out, Token Expired)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -73,6 +86,8 @@ export function AuthProvider({ children }) {
       } else {
         setProfile(null);
         setLoading(false);
+        // O redirecionamento explícito no handleSignOut é mais confiável.
+        // A limpeza de estado aqui continua sendo uma boa prática.
       }
     });
 
@@ -84,10 +99,10 @@ export function AuthProvider({ children }) {
   const handleSignOut = async () => {
     setLoading(true);
     await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    setLoading(false);
+    localStorage.removeItem("candidate_session");
+    localStorage.removeItem("resident_session");
+    // Redirecionamento explícito para garantir a saída da página.
+    router.push('/login');
   };
 
   return (
