@@ -84,6 +84,7 @@ Criar uma plataforma sob demanda inspirada no modelo da Parafuzo, com foco **hip
 | src/app/cliente/painel/page.js             | @dev        | Dashboard exclusivo do cliente para agendamentos e histórico |
 | src/app/login/page.js                      | @dev        | Página de autenticação reativa com suporte a contas híbridas |
 | src/app/login/escolha/page.js              | @dev        | Tela de seleção de perfil para usuários híbridos (Cliente + Prestador) |
+| src/app/api/auth/signup/route.js           | @dev        | Rota de API (backend) para criar usuários confirmados ignorando validações de e-mail |
 | src/app/gestor/painel/page.js              | @dev        | Painel de controle gestor com triagem segura e expurgo biométrico (LGPD) |
 | src/components/ui/Button.js                | @dev        | Componente de botão reutilizável com estados e variantes premium |
 | src/components/ui/Input.js                 | @dev        | Componente de campo de entrada reativo com feedback de erro e validações |
@@ -96,8 +97,11 @@ Criar uma plataforma sob demanda inspirada no modelo da Parafuzo, com foco **hip
 | tests/e2e/onboarding.spec.js               | @qa         | Suite de testes E2E do Playwright para onboarding do prestador |
 | tests/e2e/cliente-onboarding.spec.js       | @qa         | Suite de testes E2E do Playwright para a LP comercial e onboarding do morador |
 | supabase/migrations/20260518231500_add_resident_role.sql | @architect | Migração para suportar role de morador e criação da tabela de residentes |
+| supabase/migrations/20260519140000_provider_skills_pix_requests.sql | @architect | Migração para adicionar habilidades, chaves PIX de prestadores e a tabela de solicitações |
+| supabase/migrations/20260519150000_auto_confirm_users.sql           | @architect | Migração de trigger para auto-confirmar e-mails no Supabase Auth e evitar erros de sessão |
+| src/app/prestador/painel/page.js           | @dev        | Dashboard operacional do prestador com gestão de habilidades, PIX e serviços |
 | docs/deploys/deploy-2026-05-19-prod.md     | @devops     | Histórico do primeiro deploy de produção Next.js na Vercel |
  
 ## Última Atualização
 - Data    : 2026-05-19
-- Por     : @maestro & @devops
+- Por     : @maestro & @dev & @architect

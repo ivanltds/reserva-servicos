@@ -9,7 +9,21 @@ import {
   updateProviderStatus,
   approveProvider,
   SUPABASE_URL,
+  updateServiceItemPrice,
 } from "../../../services/supabase";
+
+const PRICING_CATEGORIES = [
+  { id: "limpeza_domestica", title: "Limpeza Doméstica" },
+  { id: "pequenos_reparos_eletrica", title: "Pequenos Reparos (Elétrica)" },
+  { id: "pequenos_reparos_hidraulica", title: "Pequenos Reparos (Hidráulica)" },
+  { id: "pequenos_reparos_pintura", title: "Pequenos Reparos (Pintura)" },
+  { id: "pequenos_reparos_alvenaria", title: "Pequenos Reparos (Alvenaria)" },
+  { id: "montador_de_moveis", title: "Montador de Móveis e Instalações" },
+  { id: "cuidado_de_animais", title: "Cuidado de Animais (Pet Care)" },
+  { id: "cozinha_gastronomia", title: "Cozinha e Gastronomia" },
+  { id: "telhados_calhas", title: "Telhados e Calhas" },
+  { id: "apoio_mudancas", title: "Apoio em Mudanças (Carga/Descarga)" }
+];
 import Badge from "../../../components/ui/Badge";
 import Button from "../../../components/ui/Button";
 import Modal from "../../../components/ui/Modal";
@@ -25,6 +39,11 @@ export default function GestorPainelPage() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [loadingList, setLoadingList] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
+
+  // Estados Locais de Precificação
+  const [pricingItems, setPricingItems] = useState([]);
+  const [loadingPricing, setLoadingPricing] = useState(false);
+  const [selectedPricingCategoryId, setSelectedPricingCategoryId] = useState("limpeza_domestica");
 
   // URLs assinadas seguras (LGPD)
   const [selfieUrl, setSelfieUrl] = useState("");
@@ -59,6 +78,23 @@ export default function GestorPainelPage() {
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
+
+  const loadPricingItems = async () => {
+    setLoadingPricing(true);
+    try {
+      const { data, error } = await supabase
+        .from("service_items")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      setPricingItems(data || []);
+    } catch (err) {
+      console.error("Erro ao carregar itens de precificação:", err);
+      showCustomAlert("Erro de Banco", "Não foi possível carregar os itens de serviço.");
+    } finally {
+      setLoadingPricing(false);
+    }
+  };
 
   // Carrega a lista de candidatos com base no status da aba ativa (ref estável para evitar loops de WebSocket)
   const loadCandidates = useCallback(async () => {
@@ -165,12 +201,18 @@ export default function GestorPainelPage() {
   // Carrega e assina atualizações do Postgres em tempo real (instalação estável única)
   useEffect(() => {
     if (user && (profile?.role === "master" || profile?.role === "operator")) {
-      loadCandidates();
+      if (activeTab !== "Valores") {
+        loadCandidates();
+      } else {
+        loadPricingItems();
+      }
 
       const channel = supabase
         .channel("public:service_providers")
         .on("postgres_changes", { event: "*", schema: "public", table: "service_providers" }, () => {
-          loadCandidates();
+          if (activeTabRef.current !== "Valores") {
+            loadCandidates();
+          }
         })
         .subscribe();
 
@@ -178,7 +220,7 @@ export default function GestorPainelPage() {
         supabase.removeChannel(channel);
       };
     }
-  }, [user, profile, loadCandidates]);
+  }, [user, profile, activeTab, loadCandidates]);
 
   // Manipulador de Aprovação / Purge de Segurança
   const handleApprove = async () => {
@@ -356,15 +398,19 @@ export default function GestorPainelPage() {
           }}
         >
           {/* Abas */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "4px" }}>
-            {["Pendente", "Aprovado", "Inativo", "Banido"].map((status) => (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "4px" }}>
+            {["Pendente", "Aprovado", "Inativo", "Banido", "Valores"].map((status) => (
               <button
                 key={status}
                 onClick={() => {
                   setActiveTab(status);
                   setSelectedCandidate(null);
                   activeTabRef.current = status;
-                  loadCandidates();
+                  if (status !== "Valores") {
+                    loadCandidates();
+                  } else {
+                    loadPricingItems();
+                  }
                 }}
                 style={{
                   padding: "8px 2px",
@@ -393,16 +439,45 @@ export default function GestorPainelPage() {
                 ? "Prestadores Ativos"
                 : activeTab === "Inativo"
                 ? "Inativos"
-                : "Banidos"}
+                : activeTab === "Banido"
+                ? "Banidos"
+                : "Categorias"}
             </h3>
-            <Badge variant={activeTab === "Pendente" ? "accent" : activeTab === "Aprovado" ? "success" : "danger"}>
-              {candidates.length}
+            <Badge variant={activeTab === "Pendente" ? "accent" : activeTab === "Aprovado" ? "success" : activeTab === "Valores" ? "brand" : "danger"}>
+              {activeTab === "Valores" ? PRICING_CATEGORIES.length : candidates.length}
             </Badge>
           </div>
 
           {/* Fila */}
           <div style={{ overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
-            {loadingList ? (
+            {activeTab === "Valores" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {PRICING_CATEGORIES.map(cat => {
+                  const isSelected = selectedPricingCategoryId === cat.id;
+                  const count = pricingItems.filter(item => item.category_id === cat.id).length;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => setSelectedPricingCategoryId(cat.id)}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "10px",
+                        border: isSelected ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(255,255,255,0.02)",
+                        backgroundColor: isSelected ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.01)",
+                        cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        transition: "var(--transition-smooth)"
+                      }}
+                    >
+                      <span style={{ fontSize: "0.78rem", fontWeight: isSelected ? 600 : 400 }}>{cat.title}</span>
+                      <Badge variant="brand">{count || 12}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : loadingList ? (
               <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.75rem", padding: "20px" }}>
                 Atualizando lista...
               </div>
@@ -485,7 +560,19 @@ export default function GestorPainelPage() {
 
         {/* Workspace Central */}
         <main style={{ padding: "32px", display: "flex", flexDirection: "column" }}>
-          {!selectedCandidate ? (
+          {activeTab === "Valores" ? (
+            <PricingWorkspace
+              pricingItems={pricingItems}
+              selectedCategoryId={selectedPricingCategoryId}
+              onUpdatePrice={async (itemId, defaultPrice, defaultDurationHours) => {
+                const updated = await updateServiceItemPrice(itemId, defaultPrice, defaultDurationHours);
+                if (updated) {
+                  setPricingItems(prev => prev.map(item => item.id === itemId ? updated : item));
+                }
+              }}
+              showCustomAlert={showCustomAlert}
+            />
+          ) : !selectedCandidate ? (
             /* Empty State */
             <div
               style={{
@@ -1144,3 +1231,172 @@ export default function GestorPainelPage() {
     </div>
   );
 }
+
+function PricingWorkspace({ pricingItems, selectedCategoryId, onUpdatePrice, showCustomAlert }) {
+  const items = pricingItems.filter(item => item.category_id === selectedCategoryId);
+  const categoryTitle = items[0]?.category_title || "Itens de Serviço";
+
+  // Local state for editing fields to avoid slow typing due to state updates
+  const [editValues, setEditValues] = useState({});
+  const [savingId, setSavingId] = useState(null);
+
+  // Sync editValues with items whenever selectedCategoryId or items change
+  useEffect(() => {
+    const initialValues = {};
+    items.forEach(item => {
+      initialValues[item.id] = {
+        price: item.default_price.toString(),
+        duration: item.default_duration_hours.toString()
+      };
+    });
+    setEditValues(initialValues);
+  }, [selectedCategoryId, pricingItems]);
+
+  const handleChange = (itemId, field, value) => {
+    setEditValues(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSave = async (itemId) => {
+    const val = editValues[itemId];
+    if (!val) return;
+    
+    const priceNum = parseFloat(val.price);
+    const durationNum = parseFloat(val.duration);
+
+    if (isNaN(priceNum) || priceNum < 0) {
+      showCustomAlert("Valor Inválido", "Por favor, insira um preço válido (maior ou igual a 0).");
+      return;
+    }
+
+    if (isNaN(durationNum) || durationNum <= 0) {
+      showCustomAlert("Duração Inválida", "Por favor, insira uma duração estimada maior que 0.");
+      return;
+    }
+
+    setSavingId(itemId);
+    try {
+      await onUpdatePrice(itemId, priceNum, durationNum);
+    } catch (err) {
+      showCustomAlert("Erro ao salvar", err.message || "Não foi possível salvar a alteração.");
+    } finally {
+      setTimeout(() => setSavingId(null), 800);
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px", animation: "fadeIn 0.3s ease", height: "100%", overflow: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "var(--border-thin)", paddingBottom: "16px" }}>
+        <div>
+          <h2 style={{ fontSize: "1.6rem", fontFamily: "Outfit", fontWeight: 700 }}>
+            Tabela de Preços e Tempos Estimados
+          </h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginTop: "4px" }}>
+            Categoria Ativa: <span style={{ color: "var(--theme-primary)", fontWeight: 600 }}>{categoryTitle}</span> ({items.length} sub-blocos)
+          </p>
+        </div>
+        <Badge variant="brand">Gestão de Precificação</Badge>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "8px" }}>
+        <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 8px" }}>
+          <thead>
+            <tr style={{ color: "var(--text-muted)", fontSize: "0.75rem", textTransform: "uppercase" }}>
+              <th style={{ textAlign: "left", padding: "12px 16px" }}>Atividade (Sub-bloco)</th>
+              <th style={{ textAlign: "center", padding: "12px 16px", width: "180px" }}>Tempo Estimado (h)</th>
+              <th style={{ textAlign: "center", padding: "12px 16px", width: "180px" }}>Preço Padrão (R$)</th>
+              <th style={{ textAlign: "center", padding: "12px 16px", width: "120px" }}>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map(item => {
+              const currentEdit = editValues[item.id] || { price: "", duration: "" };
+              const isSaving = savingId === item.id;
+              
+              return (
+                <tr 
+                  key={item.id} 
+                  style={{ 
+                    backgroundColor: "rgba(255, 255, 255, 0.01)", 
+                    borderRadius: "10px",
+                    transition: "var(--transition-smooth)"
+                  }}
+                >
+                  <td style={{ padding: "16px", borderTopLeftRadius: "10px", borderBottomLeftRadius: "10px" }}>
+                    <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#fff" }}>{item.name}</span>
+                  </td>
+                  <td style={{ padding: "16px", textAlign: "center" }}>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      value={currentEdit.duration}
+                      onChange={(e) => handleChange(item.id, "duration", e.target.value)}
+                      style={{
+                        width: "80px",
+                        padding: "8px",
+                        textAlign: "center",
+                        borderRadius: "6px",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        backgroundColor: "rgba(0,0,0,0.2)",
+                        color: "#fff",
+                        fontSize: "0.85rem"
+                      }}
+                    />
+                  </td>
+                  <td style={{ padding: "16px", textAlign: "center" }}>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                      <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", color: "var(--text-muted)" }}>R$</span>
+                      <input
+                        type="number"
+                        step="5"
+                        min="0"
+                        value={currentEdit.price}
+                        onChange={(e) => handleChange(item.id, "price", e.target.value)}
+                        style={{
+                          width: "110px",
+                          padding: "8px 8px 8px 30px",
+                          borderRadius: "6px",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          backgroundColor: "rgba(0,0,0,0.2)",
+                          color: "#fff",
+                          fontSize: "0.85rem"
+                        }}
+                      />
+                    </div>
+                  </td>
+                  <td style={{ padding: "16px", textAlign: "center", borderTopRightRadius: "10px", borderBottomRightRadius: "10px" }}>
+                    <button
+                      onClick={() => handleSave(item.id)}
+                      disabled={isSaving}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        border: "none",
+                        backgroundColor: isSaving ? "rgba(16, 185, 129, 0.15)" : "var(--theme-primary)",
+                        color: isSaving ? "var(--theme-primary)" : "#061a14",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        width: "80px",
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      {isSaving ? "Salvo ✓" : "Salvar"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+

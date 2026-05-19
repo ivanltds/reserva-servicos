@@ -51,7 +51,7 @@ export default function Button({
           />
         </svg>
       )}
-      <span>{children}</span>
+      {children}
     </button>
   );
 }

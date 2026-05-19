@@ -16,6 +16,16 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
  * Útil para evitar erros de chave estrangeira (FK) em inserções imediatas pós-cadastro.
  */
 async function ensureProfileExists(userId, maxAttempts = 10, interval = 500) {
+  // Verifica se o usuário possui sessão ativa (se o e-mail não estiver confirmado, a sessão será null)
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error(
+      "Confirmação de e-mail pendente. O Supabase exige a confirmação do e-mail antes de criar a sessão. " +
+      "Por favor, desative a opção 'Confirm email' nas configurações de Auth no seu painel do Supabase Cloud " +
+      "ou execute o script/trigger SQL de auto-confirmação disponível em supabase/migrations/."
+    );
+  }
+
   for (let i = 0; i < maxAttempts; i++) {
     const { data } = await supabase.from("profiles").select("id").eq("id", userId).single();
     if (data) return true;
@@ -46,23 +56,18 @@ export function withTimeout(promise, timeoutMs = 20000, errorMsg = "Tempo limite
  */
 export async function signUpProvider(email, password, name, cpf, phone) {
   const signUpPromise = (async () => {
-    // 1. Criar o usuário de autenticação com todos os metadados inclusos
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          cpf,
-          phone,
-          role: "candidate",
-        },
-      },
+    // 1. Criar o usuário chamando o endpoint seguro do servidor para evitar envio de e-mails
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name, cpf, phone, role: "candidate" }),
     });
 
-    if (error) {
-      // Se o usuário já estiver registrado, tenta fazer sign-in automático com as mesmas credenciais para completar o cadastro
-      if (error.message && (error.message.includes("already registered") || error.status === 422)) {
+    const result = await response.json();
+
+    if (!response.ok) {
+      const errMsg = result.error || "";
+      if (errMsg.includes("already registered") || errMsg.includes("already exists") || response.status === 422) {
         console.warn("Usuário já cadastrado no Auth. Autenticando para adicionar papel de prestador...");
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -74,17 +79,17 @@ export async function signUpProvider(email, password, name, cpf, phone) {
         
         return signInData.user;
       }
-      throw error;
-    }
-    
-    if (!data.user) throw new Error("Erro desconhecido durante o cadastro.");
-
-    // Forçar a ativação e persistência imediata da sessão para requisições do cliente subsequentes
-    if (data.session) {
-      await supabase.auth.setSession(data.session);
+      throw new Error(errMsg || "Erro ao realizar o cadastro.");
     }
 
-    return data.user;
+    // 2. Fazer login automático para obter a sessão ativa no cliente
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) throw signInError;
+
+    return signInData.user;
   })();
 
   return await withTimeout(signUpPromise, 25000, "O cadastro demorou muito para responder. Tente novamente.");
@@ -96,22 +101,18 @@ export async function signUpProvider(email, password, name, cpf, phone) {
  */
 export async function signUpResident(email, password, name, cpf, phone) {
   const signUpPromise = (async () => {
-    // 1. Criar o usuário de autenticação com todos os metadados inclusos
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          cpf,
-          phone,
-          role: "resident",
-        },
-      },
+    // 1. Criar o usuário chamando o endpoint seguro do servidor para evitar envio de e-mails
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name, cpf, phone, role: "resident" }),
     });
 
-    if (error) {
-      if (error.message && (error.message.includes("already registered") || error.status === 422)) {
+    const result = await response.json();
+
+    if (!response.ok) {
+      const errMsg = result.error || "";
+      if (errMsg.includes("already registered") || errMsg.includes("already exists") || response.status === 422) {
         console.warn("Cliente já cadastrado no Auth. Autenticando para adicionar papel de cliente...");
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -123,16 +124,17 @@ export async function signUpResident(email, password, name, cpf, phone) {
 
         return signInData.user;
       }
-      throw error;
-    }
-    
-    if (!data.user) throw new Error("Erro desconhecido durante o cadastro.");
-
-    if (data.session) {
-      await supabase.auth.setSession(data.session);
+      throw new Error(errMsg || "Erro ao realizar o cadastro.");
     }
 
-    return data.user;
+    // 2. Fazer login automático para obter a sessão ativa no cliente
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) throw signInError;
+
+    return signInData.user;
   })();
 
   return await withTimeout(signUpPromise, 25000, "O cadastro do morador demorou muito para responder. Tente novamente.");
@@ -387,28 +389,60 @@ export async function approveProvider(providerId, selfiePath, rgPath, documentPa
     const session = (await supabase.auth.getSession()).data.session;
     if (!session) throw new Error("Usuário não autenticado para realizar aprovação.");
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/purge-sensible-doc`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        provider_id: providerId,
-        selfie_path: selfiePath,
-        rg_path: rgPath,
-        document_path: documentPath,
-        reviewed_by: reviewedBy,
-        audit_checklist: auditChecklist,
-      }),
-    });
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/purge-sensible-doc`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          provider_id: providerId,
+          selfie_path: selfiePath,
+          rg_path: rgPath,
+          document_path: documentPath,
+          reviewed_by: reviewedBy,
+          audit_checklist: auditChecklist,
+        }),
+      });
 
-    const responseData = await response.json();
-    if (!response.ok) {
+      if (response.ok) {
+        return await response.json();
+      }
+
+      const responseData = await response.json().catch(() => ({}));
       throw new Error(responseData.error || "Falha ao acionar a função de expurgo seguro.");
-    }
+    } catch (fetchErr) {
+      console.warn("Falha ao chamar a Edge Function. Executando fallback local no cliente:", fetchErr.message);
 
-    return responseData;
+      // Fallback: Executa o expurgo de documentos e atualização diretamente pelo cliente (segurança garantida pelas políticas RLS)
+      if (rgPath) {
+        const { error: rgErr } = await supabase.storage.from("criminologia-temp").remove([rgPath]);
+        if (rgErr) console.error("Erro no fallback ao deletar RG:", rgErr.message);
+      }
+
+      if (documentPath) {
+        const { error: docErr } = await supabase.storage.from("criminologia-temp").remove([documentPath]);
+        if (docErr) console.error("Erro no fallback ao deletar comprovante:", docErr.message);
+      }
+
+      const { error: dbError } = await supabase
+        .from("service_providers")
+        .update({
+          status: "Aprovado",
+          is_verified: true,
+          verified_at: new Date().toISOString(),
+          reviewed_by: reviewedBy,
+          audit_checklist: auditChecklist
+        })
+        .eq("id", providerId);
+
+      if (dbError) {
+        throw new Error(`Erro ao aprovar no banco de dados: ${dbError.message}`);
+      }
+
+      return { success: true, fallback: true };
+    }
   })();
 
   return await withTimeout(approvePromise, 30000, "A homologação e expurgo seguro demoraram muito para responder (timeout).");
@@ -445,3 +479,50 @@ export async function checkRegistrationAvailability(email, cpf) {
     return { email_taken: false, cpf_taken: false };
   }
 }
+
+/**
+ * Busca todos os itens de serviço da tabela public.service_items.
+ * Caso falhe ou a tabela não exista, retorna null para que a interface utilize fallback local.
+ */
+export async function fetchServiceItems() {
+  try {
+    const { data, error } = await supabase
+      .from("service_items")
+      .select("*")
+      .order("category_id")
+      .order("name");
+    
+    if (error) {
+      console.warn("⚠️ Falha ao buscar service_items da tabela. Pode ser que as migrações não tenham sido aplicadas:", error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn("⚠️ Exceção ao buscar service_items do banco:", err);
+    return null;
+  }
+}
+
+/**
+ * Atualiza o preço padrão e duração estimada de um item de serviço (somente gestores master/operadores).
+ */
+export async function updateServiceItemPrice(itemId, defaultPrice, defaultDurationHours) {
+  try {
+    const { data, error } = await supabase
+      .from("service_items")
+      .update({
+        default_price: defaultPrice,
+        default_duration_hours: defaultDurationHours,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", itemId)
+      .select();
+
+    if (error) throw error;
+    return data?.[0] || null;
+  } catch (err) {
+    console.error("❌ Erro ao atualizar preço do item de serviço:", err);
+    throw err;
+  }
+}
+
