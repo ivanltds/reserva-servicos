@@ -40,3 +40,5 @@ out/
 # Jest coverage output
 coverage/
 
+
+.vercel

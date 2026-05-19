@@ -2,7 +2,6 @@
   "name": "reserva-servicos",
   "version": "1.0.0",
   "description": "Plataforma Hiperlocal de Serviços Residenciais - Reserva Serviços",
-  "main": "public/index.html",
   "type": "module",
   "scripts": {
     "dev": "next dev --webpack -p 3000",
