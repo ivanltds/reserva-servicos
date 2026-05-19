@@ -539,7 +539,7 @@ export default function CommercialLanding() {
             border: "1px solid rgba(16, 185, 129, 0.15)",
             borderRadius: "24px",
             padding: "32px",
-            display: "flex",
+            display: isMobile && mobileTab !== "client" ? "none" : "flex",
             flexDirection: "column",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
             transition: "all 0.3s ease"
@@ -755,7 +755,7 @@ export default function CommercialLanding() {
             border: "1px solid rgba(245, 158, 11, 0.15)",
             borderRadius: "24px",
             padding: "32px",
-            display: "flex",
+            display: isMobile && mobileTab !== "provider" ? "none" : "flex",
             flexDirection: "column",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
             transition: "all 0.3s ease"

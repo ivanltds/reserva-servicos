@@ -96,7 +96,8 @@ Criar uma plataforma sob demanda inspirada no modelo da Parafuzo, com foco **hip
 | tests/e2e/onboarding.spec.js               | @qa         | Suite de testes E2E do Playwright para onboarding do prestador |
 | tests/e2e/cliente-onboarding.spec.js       | @qa         | Suite de testes E2E do Playwright para a LP comercial e onboarding do morador |
 | supabase/migrations/20260518231500_add_resident_role.sql | @architect | Migração para suportar role de morador e criação da tabela de residentes |
+| docs/deploys/deploy-2026-05-19-prod.md     | @devops     | Histórico do primeiro deploy de produção Next.js na Vercel |
  
 ## Última Atualização
-- Data    : 2026-05-18
-- Por     : @maestro & @dev
+- Data    : 2026-05-19
+- Por     : @maestro & @devops

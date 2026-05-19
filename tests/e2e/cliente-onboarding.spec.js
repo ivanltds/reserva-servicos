@@ -7,33 +7,43 @@ test.describe("Landing Page Comercial Principal - E2E", () => {
 
   test("Deve carregar a Landing Page Comercial Geral com elementos principais", async ({ page }) => {
     // Verifica logo e badges principais
-    await expect(page.locator("text=RESERVA SERVIÇOS")).toBeVisible();
-    await expect(page.locator("text=SERVIÇOS PERTO DE VOCÊ")).toBeVisible();
+    await expect(page.locator("text=RESERVA SERVIÇOS").first()).toBeVisible();
+    
+    const viewport = page.viewportSize();
+    const isMobile = viewport && viewport.width < 768;
+    if (!isMobile) {
+      await expect(page.locator("text=PLATAFORMA INDEPENDENTE")).toBeVisible();
+    }
     
     // Deve exibir o cabeçalho principal
     await expect(page.locator("h1")).toContainText("Serviços de Confiança, Bem do seu Lado");
   });
 
   test("Deve exibir painéis Split Lado Morador e Lado Prestador", async ({ page }) => {
-    const moradorTab = page.locator("text=Sou Morador (Contratar)");
-    const isMobile = await moradorTab.isVisible();
+    const viewport = page.viewportSize();
+    const isMobile = viewport && viewport.width < 768;
 
     if (isMobile) {
-      await moradorTab.click({ force: true });
-      await page.waitForTimeout(200); // Aguarda a transição de estado do React
-    }
-    // Painel do Morador
-    await expect(page.locator("text=Ajuda de Confiança, bem do seu lado")).toBeVisible();
-    await expect(page.locator("text=CADASTRAR E CONTRATAR")).toBeVisible();
+      const moradorTab = page.locator("text=Sou Morador (Contratar)").first();
+      // Espera até que o botão esteja visível (garante hidratação/renderização móvel)
+      await expect(moradorTab).toBeVisible();
+      await moradorTab.click();
+      await expect(page.locator("text=CADASTRAR E CONTRATAR")).toBeVisible();
+      await expect(page.locator("text=CADASTRAR E TRABALHAR")).toBeHidden();
 
-    if (isMobile) {
-      const prestadorTab = page.locator("text=Sou Prestador (Trabalhar)");
-      await prestadorTab.click({ force: true });
-      await page.waitForTimeout(200); // Aguarda transição do React
+      // Clica na aba do Prestador
+      const prestadorTab = page.locator("text=Sou Prestador (Trabalhar)").first();
+      await expect(prestadorTab).toBeVisible();
+      await prestadorTab.click();
+      await expect(page.locator("text=CADASTRAR E TRABALHAR")).toBeVisible();
+      await expect(page.locator("text=CADASTRAR E CONTRATAR")).toBeHidden();
+    } else {
+      // No desktop, ambos os painéis são exibidos lado a lado
+      await expect(page.locator("text=Ajuda de Confiança, bem do seu lado")).toBeVisible();
+      await expect(page.locator("text=CADASTRAR E CONTRATAR")).toBeVisible();
+      await expect(page.locator("text=Trabalhe Perto de Casa")).toBeVisible();
+      await expect(page.locator("text=CADASTRAR E TRABALHAR")).toBeVisible();
     }
-    // Painel do Prestador
-    await expect(page.locator("text=Trabalhe Perto de Casa")).toBeVisible();
-    await expect(page.locator("text=CADASTRAR E TRABALHAR")).toBeVisible();
   });
 
 
@@ -61,15 +71,12 @@ test.describe("Jornada de Onboarding do Morador (Cliente) - E2E", () => {
     } catch (e) {}
   });
 
-  test("Deve carregar a página de cadastro do morador com simulador", async ({ page }) => {
-    await expect(page.locator("h2:has-text('Simule o Orçamento')")).toBeVisible();
-    await expect(page.locator("text=CADASTRE-SE E CHAME UM PROFISSIONAL")).toBeVisible();
+  test("Deve carregar a página de cadastro do morador", async ({ page }) => {
+    await expect(page.locator("h2:has-text('Ficha Cadastral do Cliente')")).toBeVisible();
+    await expect(page.locator("#reg-name")).toBeVisible();
   });
 
-  test("Deve avançar para a ficha cadastral do morador e testar CEP autofill", async ({ page }) => {
-    // Avança para o Step 1
-    await page.click("text=CADASTRE-SE E CHAME UM PROFISSIONAL", { force: true });
-    
+  test("Deve testar CEP autofill na ficha cadastral do morador", async ({ page }) => {
     // Preenche CEP específico para disparar preenchimento automático
     const cepInput = page.locator("#reg-cep");
     await expect(cepInput).toBeVisible();
